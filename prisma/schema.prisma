@@ -16,6 +16,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   courseAccess  CourseAccess[]
   passwordResetTokens PasswordResetToken[]
+  purchases     Purchase[]
 }
 
 model CourseAccess {
@@ -34,4 +35,24 @@ model PasswordResetToken {
   user      User     @relation(fields: [userId], references: [id])
   expires   DateTime
   createdAt DateTime @default(now())
+}
+
+model Course {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  image       String
+  price       Float
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  purchases   Purchase[]
+}
+
+model Purchase {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  course    Course   @relation(fields: [courseId], references: [id])
 }
