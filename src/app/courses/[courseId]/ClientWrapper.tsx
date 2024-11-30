@@ -4,12 +4,20 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
 import { PurchaseModal } from '@/components/PurchaseModal'
 import { MarketingCourseContent } from '@/components/courses/MarketingCourseContent'
+import { ThePerfectHomePage } from '@/components/courses/ThePerfectHomePage'
+import { AmazingTest } from '@/components/courses/AmazingTest'
 
 interface ClientWrapperProps {
   course: any
   hasAccess: boolean
   userId: string
   paymentIntent?: string | null
+}
+
+const courseComponents = {
+  'marketing-course': MarketingCourseContent,
+  'the-perfect-home-page': ThePerfectHomePage,
+  'amazing-test': AmazingTest
 }
 
 export function ClientWrapper({ course, hasAccess, userId, paymentIntent }: ClientWrapperProps) {
@@ -64,5 +72,20 @@ export function ClientWrapper({ course, hasAccess, userId, paymentIntent }: Clie
     return <PurchaseModal course={course} />
   }
 
-  return <MarketingCourseContent />
+  const CourseComponent = courseComponents[course.id as keyof typeof courseComponents]
+
+  if (!CourseComponent) {
+    return (
+      <div className="min-h-screen bg-coastal-shell py-12">
+        <div className="container mx-auto px-4">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h1 className="text-xl font-bold mb-4">Course Not Found</h1>
+            <p>This course content is not available.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return <CourseComponent />
 } 

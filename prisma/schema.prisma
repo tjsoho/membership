@@ -19,7 +19,7 @@ model User {
   purchases           Purchase[]
   emailVerified       DateTime?
   image               String?
-  isAdmin             Boolean               @default(false)
+  isAdmin             Boolean              @default(false)
 }
 
 model CourseAccess {
@@ -28,7 +28,8 @@ model CourseAccess {
   courseId  String
   createdAt DateTime @default(now())
   active    Boolean  @default(true)
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 }
 
 model PasswordResetToken {
@@ -37,19 +38,20 @@ model PasswordResetToken {
   userId    String
   expires   DateTime
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Course {
-  id              String     @id @default(cuid())
+  id              String         @id @default(cuid())
   title           String
   description     String
   image           String
   price           Float
   stripeProductId String?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   purchases       Purchase[]
+  courseAccess    CourseAccess[]
 }
 
 model Purchase {
@@ -59,8 +61,8 @@ model Purchase {
   paymentIntentId String   @unique
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  course          Course   @relation(fields: [courseId], references: [id])
-  user            User     @relation(fields: [userId], references: [id])
+  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([courseId])

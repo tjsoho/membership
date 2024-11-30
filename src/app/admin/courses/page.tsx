@@ -2,6 +2,7 @@ import { getAuthSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { CreateCourseForm } from '@/components/admin/CreateCourseForm'
 import { CoursesList } from '@/components/admin/CoursesList'
+import { prisma } from '@/lib/db/prisma'
 import { Navbar } from '@/components/Navbar'
 
 export default async function AdminCoursesPage() {
@@ -28,16 +29,23 @@ export default async function AdminCoursesPage() {
     )
   }
 
+  // Fetch courses
+  const courses = await prisma.course.findMany({
+    orderBy: {
+      createdAt: 'desc'
+    }
+  })
+
   return (
     <div className="min-h-screen bg-coastal-shell">
-      <Navbar />
-      
+        <Navbar />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-coastal-sand">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-coastal-ocean">Course Management</h1>
-              <p className="text-coastal-ocean/60 mt-2">Manage your course catalog</p>
+              <p className="text-coastal-ocean/60 mt-2">Create and manage your course catalog</p>
             </div>
             <div className="flex items-center space-x-2 text-sm">
               <div className="w-2 h-2 bg-coastal-teal rounded-full animate-pulse"></div>
@@ -49,6 +57,7 @@ export default async function AdminCoursesPage() {
         </div>
         
         <div className="grid gap-8">
+          {/* Add New Course Section */}
           <div className="bg-white rounded-2xl shadow-lg border border-coastal-sand overflow-hidden">
             <div className="p-8">
               <div className="flex items-center space-x-3 mb-6">
@@ -63,6 +72,7 @@ export default async function AdminCoursesPage() {
             </div>
           </div>
 
+          {/* Existing Courses Section */}
           <div className="bg-white rounded-2xl shadow-lg border border-coastal-sand overflow-hidden">
             <div className="p-8">
               <div className="flex items-center space-x-3 mb-6">
@@ -73,11 +83,11 @@ export default async function AdminCoursesPage() {
                 </div>
                 <h2 className="text-2xl font-semibold text-coastal-ocean">Existing Courses</h2>
               </div>
-              <CoursesList />
+              <CoursesList courses={courses} />
             </div>
           </div>
         </div>
       </div>
     </div>
   )
-} 
+}
