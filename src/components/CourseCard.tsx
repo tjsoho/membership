@@ -3,6 +3,7 @@
 ******************************************************************************/
 'use client'
 import { PurchaseButton } from './PurchaseButton'
+import Image from 'next/image'
 
 /******************************************************************************
                                 TYPES
@@ -24,11 +25,15 @@ export function CourseCard({ id, title, description, image, price, isUnlocked, o
   return (
     <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       <div onClick={onClick} className="cursor-pointer">
-        <img 
-          src={image} 
-          alt={title} 
-          className="w-full h-48 object-cover"
-        />
+        <div className="relative h-48 w-full">
+          <Image
+            src={image}
+            alt={title}
+            fill
+            className="object-cover rounded-t-lg"
+            priority
+          />
+        </div>
         <div className="p-4">
           <h3 className="text-lg font-semibold">{title}</h3>
           <p className="text-gray-600 mt-2">{description}</p>

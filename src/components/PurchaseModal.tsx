@@ -21,7 +21,7 @@ export function PurchaseModal({ course }: PurchaseModalProps) {
         </p>
 
         <div className="bg-gray-50 p-6 rounded-lg mb-6">
-          <h3 className="text-lg font-semibold mb-2">What you'll get:</h3>
+          <h3 className="text-lg font-semibold mb-2">What you&apos;ll get:</h3>
           <ul className="text-left list-disc pl-6 mb-4">
             <li>Full access to all course materials</li>
             <li>Lifetime updates</li>
