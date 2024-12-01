@@ -1,63 +1,68 @@
 /******************************************************************************
                                 IMPORTS
 ******************************************************************************/
+import Stripe from 'stripe'
 import { headers } from 'next/headers'
-import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/db/prisma'
 
 /******************************************************************************
-                                TYPES
+                              WEBHOOK HANDLER
 ******************************************************************************/
-interface StripeEvent {
-  type: string
-  data: {
-    object: any
-  }
-}
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
-/******************************************************************************
-                            HELPER FUNCTIONS
-******************************************************************************/
-const verifyStripeSignature = async (req: Request, signature: string) => {
-  const body = await req.text()
-  try {
-    return stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    ) as StripeEvent
-  } catch (error: any) {
-    throw new Error(`Webhook Error: ${error.message}`)
-  }
-}
-
-const handleCheckoutComplete = async (session: any) => {
-  const { courseId, userId } = session.metadata
-  await prisma.purchase.create({
-    data: { courseId, userId }
-  })
-}
-
-/******************************************************************************
-                              API HANDLER
-******************************************************************************/
 export async function POST(req: Request) {
+  const body = await req.text()
+  const sig = headers().get('stripe-signature')
+
+  let event: Stripe.Event
+
   try {
-    const signature = headers().get('Stripe-Signature')
-    if (!signature) {
-      return new NextResponse('No signature', { status: 400 })
-    }
-
-    const event = await verifyStripeSignature(req, signature)
-
-    if (event.type === 'checkout.session.completed') {
-      await handleCheckoutComplete(event.data.object)
-    }
-
-    return new NextResponse(null, { status: 200 })
-  } catch (error: any) {
-    console.error('Webhook error:', error)
-    return new NextResponse(error.message, { status: 400 })
+    event = stripe.webhooks.constructEvent(body, sig!, endpointSecret)
+  } catch (err) {
+    console.error('❌ Webhook signature verification failed:', err)
+    return new Response('Webhook signature verification failed', { status: 400 })
   }
+
+  try {
+    if (event.type === 'payment_intent.succeeded') {
+      await handleSuccessfulPayment(event.data.object as Stripe.PaymentIntent)
+    }
+    return new Response('Webhook processed successfully', { status: 200 })
+  } catch (error) {
+    console.error('❌ Webhook handler failed:', error)
+    return new Response('Webhook handler failed', { status: 500 })
+  }
+}
+
+/******************************************************************************
+                              HELPER FUNCTIONS
+******************************************************************************/
+async function handleSuccessfulPayment(session: Stripe.PaymentIntent) {
+  console.log('💰 Processing successful payment:', session.id)
+  
+  const { courseId, userId } = session.metadata as { courseId: string; userId: string }
+  
+  await prisma.purchase.create({
+    data: {
+      paymentIntentId: session.id,
+      course: {
+        connect: { id: courseId }
+      },
+      user: {
+        connect: { id: userId }
+      }
+    }
+  })
+
+  // Also create course access
+  await prisma.courseAccess.create({
+    data: {
+      courseId,
+      userId,
+      active: true
+    }
+  })
+
+  console.log('✅ Purchase and access records created successfully')
 } 
