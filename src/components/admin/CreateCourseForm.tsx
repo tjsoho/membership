@@ -11,7 +11,7 @@ interface CreateCourseFormProps {
     description: string
     image: string
     price: number
-    stripeProductId: string
+    stripeProductId: string | null
   }
   onCancel?: () => void
 }

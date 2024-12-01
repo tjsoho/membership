@@ -4,17 +4,11 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { CreateCourseForm } from './CreateCourseForm'
+import { Course as PrismaCourse } from '@prisma/client'
 
-// Update the Course type to match your schema
-interface Course {
-  id: string
-  title: string
-  description: string
-  image: string
-  price: number
-  stripeProductId: string
-  createdAt: Date
-  updatedAt: Date
+// Create a local interface that matches your data
+interface Course extends Omit<PrismaCourse, 'stripeProductId'> {
+  stripeProductId: string | null
 }
 
 export function CoursesList({ courses }: { courses: Course[] }) {
@@ -95,21 +89,21 @@ export function CoursesList({ courses }: { courses: Course[] }) {
               </div>
               
               <div className="p-6">
-                <h3 className="text-xl font-bold text-coastal-ocean mb-2">
+                <h3 className="text-xl font-bold text-coastal-dark-grey mb-2">
                   {course.title}
                 </h3>
-                <p className="text-coastal-ocean/70 mb-4">
+                <p className="text-coastal-dark-grey/70 mb-4">
                   {course.description}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-coastal-teal">
+                  <span className="text-lg font-bold text-coastal-dark-teal">
                     ${course.price}
                   </span>
                   <div className="flex space-x-2">
                     <button
                       onClick={() => setEditing(course)}
-                      className="bg-coastal-teal text-white px-4 py-2 rounded-lg 
-                        hover:bg-coastal-teal/90 transition-colors text-sm font-medium
+                      className="bg-coastal-dark-teal text-white px-4 py-2 rounded-lg 
+                        hover:bg-coastal-light-teal transition-colors text-sm font-medium
                         flex items-center space-x-1"
                     >
                       <svg 

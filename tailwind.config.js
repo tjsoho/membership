@@ -7,13 +7,12 @@ module.exports = {
     extend: {
       colors: {
         coastal: {
-          sand: '#f5e6d3',
-          sandDark: '#e6d5bb',
-          ocean: '#2c5282',
-          oceanLight: '#4299e1',
-          teal: '#2c7a7b',
-          tealLight: '#4fd1c5',
-          shell: '#fff5f5',
+          'dark-teal': '#4EA292',
+          'light-teal': '#7AB4A8',
+          'dark-grey': '#C0C1B3',
+          'sand': '#E1CEA6',
+          'light-grey': '#E5E8E1',
+          'sand-light': '#EDDDC3',
         },
       },
     },
