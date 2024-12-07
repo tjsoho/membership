@@ -8,6 +8,8 @@ import { useState, useEffect } from 'react'
 import { LoginForm } from '@/components/auth/LoginForm'
 import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm'
 import { RegisterForm } from '@/components/auth/RegisterForm'
+import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm'
+import { useSearchParams } from 'next/navigation'
 
 /******************************************************************************
                               TYPES & CONSTANTS
@@ -37,14 +39,19 @@ export default function AuthPage() {
   const [mounted, setMounted] = useState(false)
   const [mode, setMode] = useState<AuthMode>('welcome')
   const [showNotes, setShowNotes] = useState(false)
+  const searchParams = useSearchParams()
+  const resetToken = searchParams.get('token')
 
-  // Prevent hydration mismatch
+  // Set initial mode based on token presence
   useEffect(() => {
+    if (resetToken) {
+      setMode('reset-password')
+    }
     setMounted(true)
-  }, [])
+  }, [resetToken])
 
   if (!mounted) {
-    return null // or a loading skeleton
+    return null
   }
 
   return (
@@ -102,9 +109,10 @@ export default function AuthPage() {
               {mode === 'login' && <LoginForm onForgotPassword={() => setMode('forgot-password')} />}
               {mode === 'register' && <RegisterForm onBackToLogin={() => setMode('login')} />}
               {mode === 'forgot-password' && <ForgotPasswordForm onBackToLogin={() => setMode('login')} />}
+              {mode === 'reset-password' && resetToken && <ResetPasswordForm token={resetToken} />}
             </div>
 
-            {mode !== 'welcome' && (
+            {mode !== 'welcome' && mode !== 'reset-password' && (
               <div className="pt-4 text-center">
                 {mode === 'login' ? (
                   <p className="text-sm text-coastal-dark-grey">
