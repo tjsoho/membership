@@ -144,7 +144,6 @@ export async function PUT(req: Request) {
     if (!session?.user?.email) {
       return new NextResponse('Unauthorized', { status: 401 })
     }
-
     const body = await req.json()
     console.log('API - Updating workspace item:', body)
 
@@ -154,8 +153,8 @@ export async function PUT(req: Request) {
 
     const updated = await prisma.workspaceItem.update({
       where: { 
-        id: body.id,
-        userId: session.user.email
+        id:body.id,
+        userId: session.user.id
       },
       data: {
         title: body.title,

@@ -11,6 +11,7 @@ import {
   ExcalidrawContent,
   ExcalidrawElement 
 } from './ExcalidrawWorkspace'
+import { PUT } from '@/app/api/workspace/route';
 
 type TabType = "mindmap" | "notes";
 type WorkspaceType = "MINDMAP" | "NOTES";
@@ -148,10 +149,12 @@ export function CourseWorkspace({
       console.log('Saving with payload:', payload)
 
       const method = editingItem ? 'PUT' : 'POST'
-      const url = '/api/workspace' + (editingItem ? `/${editingItem.id}` : '')
+      console.log("method :",method);
+      const url = '/api/workspace';
+      console.log("url : ",url)
 
       const response = await fetch(url, {
-        method,
+        method : method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingItem ? {
           id: editingItem.id,
