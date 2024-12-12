@@ -121,9 +121,9 @@ export function CourseWorkspace({
       let content: ExcalidrawContent | string
       
       if (activeTab === 'mindmap') {
-        const elements = excalidrawRef.current?.getSceneElements() || []
-        const appState = excalidrawRef.current?.getAppState() || {}
-        
+        const elements = tmpElement;
+        const appState = tmpAppState;
+
         content = {
           elements,
           appState: {
@@ -149,9 +149,7 @@ export function CourseWorkspace({
       console.log('Saving with payload:', payload)
 
       const method = editingItem ? 'PUT' : 'POST'
-      console.log("method :",method);
       const url = '/api/workspace';
-      console.log("url : ",url)
 
       const response = await fetch(url, {
         method : method,
@@ -290,6 +288,11 @@ export function CourseWorkspace({
       console.error('Error auto-saving:', error)
     })
   }
+
+  const [tmpElement,setTmpElement] = useState<any>();
+  const [tmpAppState,setTmpAppState] = useState<any>();
+
+
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-coastal-sand overflow-hidden">
@@ -439,6 +442,8 @@ export function CourseWorkspace({
                   : undefined}
                 onSave={handleExcalidrawSave}
                 isEditing={!!editingItem}
+                setTmpAppState={setTmpAppState}
+                setTmpElement={setTmpElement}
               />
             ) : (
               <textarea

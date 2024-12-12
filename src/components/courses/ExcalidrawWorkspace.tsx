@@ -47,9 +47,11 @@ interface ExcalidrawWorkspaceProps {
   content?: ExcalidrawContent
   onSave?: (content: ExcalidrawContent) => void
   isEditing?: boolean
+  setTmpAppState?:any
+  setTmpElement?:any
 }
 
-export function ExcalidrawWorkspace({ content, onSave, isEditing }: ExcalidrawWorkspaceProps) {
+export function ExcalidrawWorkspace({ content, onSave, isEditing,setTmpAppState,setTmpElement }: ExcalidrawWorkspaceProps) {
   const excalidrawRef = useRef<any>(null)
   const [lastSavedData, setLastSavedData] = useState<ExcalidrawContent | null>(null)
 
@@ -78,6 +80,8 @@ export function ExcalidrawWorkspace({ content, onSave, isEditing }: ExcalidrawWo
       
       // Only save if there are elements or if we're explicitly saving
       if (elements.length > 0) {
+        setTmpElement(elements)
+        setTmpAppState(appState)
         const saveContent: ExcalidrawContent = {
           elements,
           appState: {
@@ -123,4 +127,4 @@ export function ExcalidrawWorkspace({ content, onSave, isEditing }: ExcalidrawWo
       />
     </div>
   )
-} 
+}
