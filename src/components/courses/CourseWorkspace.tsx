@@ -93,7 +93,7 @@ export function CourseWorkspace({
     try {
       console.log('Fetching workspace items for course:', courseId)
       const response = await fetch(`/api/workspace?courseId=${courseId}`)
-      
+
       if (!response.ok) {
         const errorText = await response.text()
         throw new Error(`Failed to fetch workspace items: ${errorText}`)
@@ -123,15 +123,15 @@ export function CourseWorkspace({
       if (activeTab === 'mindmap') {
         const elements = tmpElement;
         const appState = tmpAppState;
-
+        console.log("appstate",appState);
         content = {
           elements,
           appState: {
-            viewBackgroundColor: appState.viewBackgroundColor || '#ffffff',
-            currentItemFontFamily: appState.currentItemFontFamily || 1,
-            zoom: appState.zoom || { value: 1 },
-            scrollX: appState.scrollX || 0,
-            scrollY: appState.scrollY || 0,
+            viewBackgroundColor: appState?.viewBackgroundColor || '#ffffff',
+            currentItemFontFamily: appState?.currentItemFontFamily || 1,
+            zoom: appState?.zoom || { value: 1 },
+            scrollX: appState?.scrollX || 0,
+            scrollY: appState?.scrollY || 0,
           }
         }
         console.log('Saving mindmap content:', content)
@@ -260,8 +260,8 @@ export function CourseWorkspace({
     setEditingItem(null);
     setCurrentTitle("");
     setNoteContent("");
-    if (excalidrawRef.current) {
-      excalidrawRef.current.updateScene({
+    if (tmpAppState.current) {
+      tmpAppState.current.updateScene({
         elements: [],
         appState: {
           viewBackgroundColor: "#ffffff",

@@ -76,12 +76,12 @@ export function ExcalidrawWorkspace({ content, onSave, isEditing,setTmpAppState,
 
   const debouncedSave = useCallback(
     debounce((elements: ExcalidrawElement[], appState: any) => {
+      setTmpElement(elements)
+      setTmpAppState(appState)
       if (!onSave || !isEditing || !elements) return
       
       // Only save if there are elements or if we're explicitly saving
       if (elements.length > 0) {
-        setTmpElement(elements)
-        setTmpAppState(appState)
         const saveContent: ExcalidrawContent = {
           elements,
           appState: {
