@@ -7,6 +7,7 @@ import { MdOutlineSubtitles } from 'react-icons/md'
 import { CourseWorkspace } from './CourseWorkspace'
 import { useSession } from 'next-auth/react'
 import { useParams } from 'next/navigation'
+import { Navbar } from '@/components/Navbar'
 
 interface CourseStep {
   id: number
@@ -117,9 +118,13 @@ export function PerfectHomePage() {
 
   return (
     <div className="min-h-screen bg-coastal-light-grey">
-      <div className="flex">
+      <div className="sticky top-0 z-50">
+        <Navbar />
+      </div>
+      
+      <div className="flex pt-0">
         {/* Left Sidebar */}
-        <div className="w-72 bg-white h-screen shadow-lg fixed left-0 overflow-y-auto border-r border-coastal-sand">
+        <div className="w-72 bg-white h-screen shadow-lg fixed left-0 overflow-y-auto border-r border-coastal-sand top-[64px]">
           <div className="p-6">
             <div className="mb-6">
               <h2 className="text-xl font-bold text-coastal-dark-teal mb-2">
