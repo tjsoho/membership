@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { exportToBlob } from '@excalidraw/excalidraw'
-import { IoSave, IoMail } from 'react-icons/io5'
+import { IoSave, IoMail, IoClose } from 'react-icons/io5'
 import { MdNote, MdDraw, MdExpandMore, MdExpandLess } from 'react-icons/md'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
@@ -12,6 +12,7 @@ import {
   ExcalidrawElement 
 } from './ExcalidrawWorkspace'
 import { PUT } from '@/app/api/workspace/route';
+import { showToast } from '@/utils/toast'
 
 type TabType = "mindmap" | "notes";
 type WorkspaceType = "MINDMAP" | "NOTES";
@@ -113,7 +114,7 @@ export function CourseWorkspace({
 
   const handleSave = async () => {
     if (!currentTitle) {
-      alert('Please enter a title')
+      showToast.error('Error', 'Please enter a title')
       return
     }
 
@@ -177,9 +178,13 @@ export function CourseWorkspace({
       }
 
       setEditingItem(savedItem)
+
+      showToast.success(
+        editingItem ? 'Updated' : 'Saved',
+        editingItem ? 'Item has been successfully updated' : 'Item has been successfully saved'
+      )
     } catch (error) {
-      console.error('Failed to save workspace item:', error)
-      alert(`Failed to save: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      showToast.error('Error', (error as Error).message || 'Failed to save item')
     }
   }
 
@@ -292,21 +297,49 @@ export function CourseWorkspace({
   const [tmpElement,setTmpElement] = useState<any>();
   const [tmpAppState,setTmpAppState] = useState<any>();
 
+  const handleDelete = (itemId: string) => {
+    showToast.delete(
+      'Confirm Delete',
+      'Are you sure you want to delete this item?',
+      () => deleteItem(itemId)
+    )
+  }
 
+  const deleteItem = async (itemId: string) => {
+    try {
+      const response = await fetch(`/api/workspace?id=${itemId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) throw new Error('Failed to delete item')
+
+      setWorkspaceItems(items => items.filter(item => item.id !== itemId))
+      
+      if (editingItem?.id === itemId) {
+        setEditingItem(null)
+        setCurrentTitle('')
+        setNoteContent('')
+      }
+
+      showToast.success('Deleted', 'Item has been successfully deleted')
+    } catch (error) {
+      console.error('Failed to delete item:', error)
+      showToast.error('Error', 'Failed to delete item')
+    }
+  }
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-coastal-sand overflow-hidden">
       {/* Workspace Header */}
       <div className="border-b border-coastal-sand p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-coastal-dark-teal">
-            Workspace
-          </h3>
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-3xl font-medium text-coastal-dark-teal">
+            Your Workspace
+          </h2>
           <div className="flex gap-2">
             <button
               onClick={handleNew}
-              className="px-4 py-2 text-coastal-dark-teal hover:bg-coastal-light-grey 
-                       rounded-lg transition-colors"
+              className="px-4 py-2 text-white hover:bg-coastal-light-grey bg-coastal-dark-teal hover:text-coastal-dark-teal hover:border-2 hover:border-coastal-dark-teal rounded-lg "
             >
               New
             </button>
@@ -332,7 +365,7 @@ export function CourseWorkspace({
                   ${
                     activeTab === "mindmap"
                       ? "bg-coastal-dark-teal text-white"
-                      : "text-coastal-dark-grey hover:bg-coastal-light-grey"
+                      : "text-coastal-dark-grey hover:bg-coastal-light-grey border-2 border-coastal-dark-grey hover:border-coastal-dark-teal hover:text-coastal-dark-teal"
                   }`}
               >
                 <MdDraw size={20} />
@@ -344,7 +377,7 @@ export function CourseWorkspace({
                   ${
                     activeTab === "notes"
                       ? "bg-coastal-dark-teal text-white"
-                      : "text-coastal-dark-grey hover:bg-coastal-light-grey"
+                      : "text-coastal-dark-grey hover:bg-coastal-light-grey border-2 border-coastal-dark-grey hover:border-coastal-dark-teal hover:text-coastal-dark-teal"
                   }`}
               >
                 <MdNote size={20} />
@@ -391,7 +424,7 @@ export function CourseWorkspace({
         <div className="grid grid-cols-4 h-[600px]">
           {/* Sidebar */}
           <div className="col-span-1 border-r border-coastal-sand overflow-y-auto p-4">
-            <h3 className="font-medium text-coastal-dark-teal mb-4">
+            <h3 className=" text-coastal-dark-teal mb-4 font-medium text-2xl">
               Saved Items
             </h3>
             <div className="space-y-2">
@@ -402,13 +435,13 @@ export function CourseWorkspace({
                   className={`w-full p-3 rounded-lg border text-left
                     ${
                       editingItem?.id === item.id
-                        ? "border-coastal-dark-teal bg-coastal-light-grey/20"
+                        ? "border-coastal-dark-teal border-2 bg-coastal-light-grey/20"
                         : "border-coastal-sand hover:border-coastal-dark-teal"
                     }
                     transition-colors group`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-coastal-dark-grey">
+                    <span className="font-medium text-coastal-dark-grey ">
                       {item.title}
                     </span>
                     <div className="opacity-0 group-hover:opacity-100 flex items-center gap-2">
@@ -418,8 +451,19 @@ export function CourseWorkspace({
                           handleSendEmail(item);
                         }}
                         className="text-coastal-dark-teal hover:text-coastal-light-teal transition-all"
+                        title="Send via email"
                       >
                         <IoMail size={16} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(item.id);
+                        }}
+                        className="text-red-500 hover:text-red-700 transition-all"
+                        title="Delete item"
+                      >
+                        <IoClose size={16} />
                       </button>
                     </div>
                   </div>

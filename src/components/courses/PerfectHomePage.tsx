@@ -22,14 +22,38 @@ const courseSteps: CourseStep[] = [
   {
     id: 1,
     title: 'Introduction',
+    duration: '4.59',
+    videoUrl: 'https://www.youtube.com/embed/yUywAYciNZM',
+    transcript: `Hi there, my name is Toby, and firstly, thank you for buying this mini-course. I'm really, really excited to share with you how you can save time and make money using AI with one, piece of content. It's going to be a game-changer. Now, the great thing about this mini-course is you don't need a marketing background, you don't need to spend hours looking into studying marketing or, or anything like that. Over the next 20 minutes or so, you are literally going to learn how and the techniques that all the bigwigs are doing. Apple, Google, Netflix, this is what they do. So, I'm really excited to share this with you. Before we get started, I'll give you a quick little background as to who I am and why I'm here, ah, educating you on this topic and then we're going to jump into the tools that I use. A little bit of the current problem and the current mindset that you might be facing as a business owner, trying to market your product and then we'll actually get into the goods and we will learn the strategy. So, who am I and why am I here talking to you, giving you all of this? Information and education. So, as I said, my name is Toby. I am a software engineer, but before I went into this world of software, and specifically AI, I owned multiple businesses and one of which was a music school. I was pretty much born with a musical instrument in my hand and I, I toured the world performing and I also built multiple music schools with over 300 students and 10 staff. I later sold, sold that music business and I had some time to think what I really wanted to do and I love the actual business side of things. I love setting up a business. I love designing it and running it from the tech point of view and the website and the marketing and how it all sits with little tech tools and all this sort of stuff. Basically I like to geek out on tools. Uhm, so then I started, I studied web development and software engineering. Go full circle now that I'm a software engineer at the same time I was learning this, AI came out and I just fell in love with it and went in a very, very deep hole learning all about AI And on the other side of that hole I have developed a software AI platform called Slug. And Sloan is an AI platform that helps business owners grow and scale their business with ease. I'll talk to you a little bit more about Sloan later on today, uhm, but that's my background. I have worked and coached with over 110 business owners showing them how they can actually adopt AI into their business to make their lives super easy without having to spend hours and hours and hours upon hours wasting time learning new courses and all these sorts of things. My idea here is I want to be able to give you a lot of value that you can start using straight away. That's the goal. My values that I really care about is education and empowerment and easiness. Freedom, I want to be able to do whatever I want, whenever I want, however I want to. I don't want anyone telling me I have to be at a certain place by a certain time and basically living by someone else's rules. So freedom is really, really big for me. Education and empowerment, well, being a music teacher, I guess, by trade is, I've always loved sharing information, uhm, and where I've taken that from here is empowering business owners with tech, with AI, with knowledge that helps them grow their business. And with the third value of mine, grow their business with the gains. You know, sometimes these topics that we're talking about, they're somewhat a little bit big and scary, and I get that. You know, marketing, what is marketing, and how can you do marketing without paying thousands of dollars to a marketing firm, hoping that it's going to work. AI. There's so much talk around AI at the moment, so how can we utilize these tools and these skills to allow us to stay in our zone of genius as a business owner, doing whatever it is that you do, being a specialty in your zone. So, that's how we're going to do it. The reason I wanted to share my values with you is because we're actually going to talk about values. I'll use later on in this mini course, and how we can use it to, and how we should be using our values to deliver content to speak to our audience. So, we'll touch on that a little bit more later. So, as for now, you now know who I am and what we're going to do in this course. And, in the next video, what I'm going to show you is the tools that I use, and also, we're going to talk about the current problem and the little bit of a block that most business owners are finding when they're wearing all the hats and doing it themselves. So, that's what we're going to do. I look forward to seeing you in the next video. Okay, bye.`,
+    completed: false
+  },
+  {
+    id: 2,
+    title: 'Tools I use',
+    duration: '9.38',
+    videoUrl: 'https://www.youtube.com/embed/rBWL1kmV8J4',
+    transcript: 'Welcome to the course...',
+    completed: false
+  },
+  {
+    id: 3,
+    title: 'The Strategy',
+    duration: '7.10',
+    videoUrl: 'https://www.youtube.com/watch?v=IdtPcAvLC2c',
+    transcript: 'Welcome to the course...',
+    completed: false
+  },
+  {
+    id: 4,
+    title: 'Conrtent To Post',
     duration: '5:30',
     videoUrl: 'https://www.youtube.com/embed/your-video-id',
     transcript: 'Welcome to the course...',
     completed: false
   },
   {
-    id: 2,
-    title: 'Tools I use',
+    id: 5,
+    title: 'Sloane',
     duration: '5:30',
     videoUrl: 'https://www.youtube.com/embed/your-video-id',
     transcript: 'Welcome to the course...',
@@ -143,7 +167,7 @@ export function PerfectHomePage() {
 
         {/* Main Content */}
         <div className="ml-72 flex-1 p-8">
-          <div className="max-w-4xl mx-auto space-y-8">
+          <div className="max-w-6xl mx-auto space-y-8">
             <div className="bg-white rounded-2xl shadow-lg p-8 border border-coastal-sand">
               <h1 className="text-3xl font-bold text-coastal-dark-teal mb-6">
                 {activeStep.title}
@@ -204,10 +228,7 @@ export function PerfectHomePage() {
               )}
 
               {/* Add Workspace Section */}
-              <div className="bg-white rounded-2xl shadow-lg p-8 border border-coastal-sand">
-                <h2 className="text-2xl font-bold text-coastal-dark-teal mb-6">
-                  Your Workspace
-                </h2>
+              <div className="bg-white mt-8 ">
                 <CourseWorkspace 
                   userEmail={session?.user?.email || ''}
                   courseId={courseId}

@@ -144,6 +144,7 @@ export async function PUT(req: Request) {
     if (!session?.user?.email) {
       return new NextResponse('Unauthorized', { status: 401 })
     }
+
     const body = await req.json()
     console.log('API - Updating workspace item:', body)
 
@@ -151,14 +152,41 @@ export async function PUT(req: Request) {
       return new NextResponse('Missing required fields', { status: 400 })
     }
 
+    // Get the current item to check its type
+    const currentItem = await prisma.workspaceItem.findUnique({
+      where: {
+        id: body.id,
+        userId: session.user.id
+      }
+    })
+
+    if (!currentItem) {
+      return new NextResponse('Item not found', { status: 404 })
+    }
+
+    // Prepare content based on type
+    let contentToSave = body.content
+    if (currentItem.type === 'MINDMAP') {
+      contentToSave = {
+        elements: body.content.elements || [],
+        appState: {
+          viewBackgroundColor: body.content.appState?.viewBackgroundColor || '#ffffff',
+          currentItemFontFamily: body.content.appState?.currentItemFontFamily || 1,
+          zoom: body.content.appState?.zoom || { value: 1 },
+          scrollX: body.content.appState?.scrollX || 0,
+          scrollY: body.content.appState?.scrollY || 0,
+        }
+      }
+    }
+
     const updated = await prisma.workspaceItem.update({
       where: { 
-        id:body.id,
+        id: body.id,
         userId: session.user.id
       },
       data: {
-        title: body.title,
-        content: body.content,
+        title: body.title || currentItem.title, // Keep existing title if not provided
+        content: contentToSave,
         updatedAt: new Date(),
       },
     })
@@ -168,6 +196,35 @@ export async function PUT(req: Request) {
 
   } catch (error) {
     console.error('API Error in PUT:', error)
+    return new NextResponse('Internal Server Error', { status: 500 })
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.email) {
+      return new NextResponse('Unauthorized', { status: 401 })
+    }
+
+    const { searchParams } = new URL(req.url)
+    const itemId = searchParams.get('id')
+    
+    if (!itemId) {
+      return new NextResponse('Item ID is required', { status: 400 })
+    }
+
+    const deletedItem = await prisma.workspaceItem.delete({
+      where: {
+        id: itemId,
+        userId: session.user.id // Ensures user can only delete their own items
+      },
+    })
+
+    return NextResponse.json(deletedItem)
+
+  } catch (error) {
+    console.error('API DELETE Error:', error)
     return new NextResponse('Internal Server Error', { status: 500 })
   }
 } 
