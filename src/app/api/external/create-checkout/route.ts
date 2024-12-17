@@ -45,6 +45,13 @@ export async function POST(req: Request) {
 
     // 2. Create Stripe checkout session
     console.log('Creating Stripe session for course:', course.title) // Debug log
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cancelUrl = isProduction
+      ? `${process.env.LANDING_PAGE_URL || 'https://www.savetime-makemoney.com/'}/cancel`
+      : 'http://localhost:3000/cancel';
+
+    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/courses/${courseId}/success?session_id={CHECKOUT_SESSION_ID}`;
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -60,8 +67,8 @@ export async function POST(req: Request) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/courses/${courseId}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.LANDING_PAGE_URL}/cancel`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       customer_email: email,
       metadata: {
         courseId,
