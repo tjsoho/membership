@@ -3,7 +3,6 @@ import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/db/prisma'
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
-import Cors from 'cors'
 
 // Add these types at the top
 interface StripeError {
@@ -21,47 +20,41 @@ interface StandardError extends Error {
   cause?: unknown;
 }
 
-// Initialize the cors middleware
-const cors = Cors({
-  methods: ['POST', 'OPTIONS'],
-  origin: '*',
-  credentials: true,
-})
+// Define allowed origins
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://www.savetime-makemoney.com',
+  // add any other domains that need access
+];
 
-// Helper method to run middleware
-function runMiddleware(req: Request) {
-  return new Promise((resolve, reject) => {
-    cors(req as any, {} as any, (result: any) => {
-      if (result instanceof Error) {
-        return reject(result)
-      }
-      return resolve(result)
-    })
-  })
+// CORS headers helper
+const corsHeaders = (origin: string | null) => {
+  console.log('🔍 Checking origin:', origin)
+  const validOrigin = allowedOrigins.includes(origin || '') ? origin : allowedOrigins[0]
+  
+  return {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': validOrigin || '*', // Fallback to * if null
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Max-Age': '86400',
+  } as const // Type assertion to make TypeScript happy
 }
 
-export async function OPTIONS() {
-  console.log('🔍 OPTIONS request received')
-  await runMiddleware(new Request('https://dummy-url.com'))
+export async function OPTIONS(req: Request) {
+  const origin = req.headers.get('origin')
+  console.log('🔍 OPTIONS request received from:', origin)
   
   return new NextResponse(null, {
     status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400',
-    },
+    headers: corsHeaders(origin)
   })
 }
 
 export async function POST(req: Request) {
-  console.log('🚀 POST request received')
-  await runMiddleware(req)
-  
-  const origin = headers().get('origin')
-  console.log('🔍 Request origin:', origin)
-  console.log('🔍 Request headers:', Object.fromEntries(headers()))
+  const origin = req.headers.get('origin')
+  console.log('🚀 POST request received from:', origin)
+  console.log('🔍 Request headers:', Object.fromEntries(req.headers))
   
   try {
     // Validate request body
@@ -77,7 +70,7 @@ export async function POST(req: Request) {
         { 
           status: 400,
           headers: {
-            'Access-Control-Allow-Origin': '*',
+            ...corsHeaders(origin),
             'Content-Type': 'application/json',
           }
         }
@@ -98,7 +91,7 @@ export async function POST(req: Request) {
         { 
           status: 404,
           headers: {
-            'Access-Control-Allow-Origin': '*',
+            ...corsHeaders(origin),
             'Content-Type': 'application/json',
           }
         }
@@ -156,15 +149,13 @@ export async function POST(req: Request) {
     return new NextResponse(
       JSON.stringify({ 
         checkoutUrl: session.url,
-        sessionId: session.id // Optional: include for debugging
+        sessionId: session.id
       }), 
       {
         status: 200,
         headers: {
-          'Access-Control-Allow-Origin': '*',
+          ...corsHeaders(origin),
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         }
       }
     )
@@ -213,10 +204,8 @@ export async function POST(req: Request) {
       { 
         status: 500,
         headers: {
-          'Access-Control-Allow-Origin': '*',
+          ...corsHeaders(origin),
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         }
       }
     )
