@@ -5,6 +5,7 @@ import Stripe from 'stripe'
 import { headers } from 'next/headers'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/db/prisma'
+import { NextResponse } from 'next/server'
 
 /******************************************************************************
                               WEBHOOK HANDLER
@@ -13,25 +14,68 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
 export async function POST(req: Request) {
   const body = await req.text()
-  const sig = headers().get('stripe-signature')
-
-  let event: Stripe.Event
-
+  const signature = headers().get('stripe-signature') as string
+  
   try {
-    event = stripe.webhooks.constructEvent(body, sig!, endpointSecret)
-  } catch (err) {
-    console.error('❌ Webhook signature verification failed:', err)
-    return new Response('Webhook signature verification failed', { status: 400 })
-  }
+    const event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    )
 
-  try {
-    if (event.type === 'payment_intent.succeeded') {
-      await handleSuccessfulPayment(event.data.object as Stripe.PaymentIntent)
+    console.log('🎉 Webhook event received:', event.type)
+
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session
+      console.log('💳 Checkout session completed:', {
+        sessionId: session.id,
+        metadata: session.metadata
+      })
+
+      // Create purchase record for external purchases
+      if (session.metadata?.source === 'EXTERNAL') {
+        console.log('📦 Creating purchase record for external purchase')
+        
+        // Create a temporary user for external purchases
+        const tempUser = await prisma.user.create({
+          data: {
+            email: session.metadata.email,
+            name: 'Pending Registration',
+            password: 'TEMPORARY_' + Math.random().toString(36).slice(2), // Random temporary password
+            emailVerified: null,
+            image: null
+          }
+        })
+
+        await prisma.purchase.create({
+          data: {
+            userId: tempUser.id,
+            courseId: session.metadata.courseId,
+            paymentIntentId: session.payment_intent as string,
+            purchaseSource: 'EXTERNAL'
+          }
+        })
+
+        // Also create course access for the user
+        await prisma.courseAccess.create({
+          data: {
+            userId: tempUser.id,
+            courseId: session.metadata.courseId,
+            active: true
+          }
+        })
+
+        console.log('✅ Purchase record and course access created with temporary user')
+      }
     }
-    return new Response('Webhook processed successfully', { status: 200 })
-  } catch (error) {
-    console.error('❌ Webhook handler failed:', error)
-    return new Response('Webhook handler failed', { status: 500 })
+
+    return new NextResponse(null, { status: 200 })
+  } catch (err) {
+    console.error('💥 Webhook error:', err)
+    return new NextResponse(
+      JSON.stringify({ message: 'Webhook error' }), 
+      { status: 400 }
+    )
   }
 }
 
