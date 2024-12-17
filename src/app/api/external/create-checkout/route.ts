@@ -27,8 +27,10 @@ export async function POST(req: Request) {
     const course = await prisma.course.findUnique({
       where: { id: courseId }
     })
+    console.log('Found course:', course) // Debug log
 
     if (!course) {
+      console.log('Course not found for ID:', courseId) // Debug log
       return new NextResponse(
         JSON.stringify({ message: 'Course not found' }), 
         { 
@@ -42,6 +44,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Create Stripe checkout session
+    console.log('Creating Stripe session for course:', course.title) // Debug log
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -66,6 +69,7 @@ export async function POST(req: Request) {
         source: 'EXTERNAL'
       }
     })
+    console.log('Stripe session created:', session.id) // Debug log
 
     return new NextResponse(
       JSON.stringify({ checkoutUrl: session.url }), 
@@ -78,9 +82,17 @@ export async function POST(req: Request) {
       }
     )
   } catch (error) {
-    console.error('Failed to create checkout session:', error)
+    // More detailed error logging
+    console.error('Checkout error details:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
+    
     return new NextResponse(
-      JSON.stringify({ message: 'Failed to create checkout session' }), 
+      JSON.stringify({ 
+        message: 'Failed to create checkout session',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }), 
       { 
         status: 500,
         headers: {
