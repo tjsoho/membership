@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { IoCheckmarkCircle } from 'react-icons/io5'
 import { BsPauseFill, BsPlayFill } from 'react-icons/bs'
 import { MdOutlineSubtitles } from 'react-icons/md'
@@ -40,7 +40,7 @@ const courseSteps: CourseStep[] = [
     id: 3,
     title: 'The Strategy',
     duration: '7.10',
-    videoUrl: 'https://www.youtube.com/watch?v=IdtPcAvLC2c',
+    videoUrl: 'https://www.youtube.com/embed/IdtPcAvLC2c',
     transcript: 'Welcome to the course...',
     completed: false
   },
@@ -116,6 +116,92 @@ export function PerfectHomePage() {
     }
   }
 
+  // Add these new states at the top of your component
+  const [isVideoFloating, setIsVideoFloating] = useState(false)
+  const [floatingPosition, setFloatingPosition] = useState({ x: 16, y: window.innerHeight - 200 })
+  const videoRef = useRef<HTMLDivElement>(null)
+  const workspaceRef = useRef<HTMLDivElement>(null)
+
+  // Add this useEffect for intersection observer
+  useEffect(() => {
+    if (!workspaceRef.current) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          setIsVideoFloating(entry.isIntersecting)
+        })
+      },
+      { threshold: 0.1 }
+    )
+
+    observer.observe(workspaceRef.current)
+    return () => observer.disconnect()
+  }, [])
+
+  // Add drag functionality
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+
+  const handleDragStart = (e: React.MouseEvent) => {
+    setIsDragging(true)
+    setDragStart({
+      x: e.clientX - floatingPosition.x,
+      y: e.clientY - floatingPosition.y
+    })
+  }
+
+  const handleDragEnd = () => {
+    setIsDragging(false)
+  }
+
+  const handleDrag = (e: React.MouseEvent) => {
+    if (!isDragging) return
+
+    const newX = Math.min(
+      Math.max(0, e.clientX - dragStart.x),
+      window.innerWidth - 320
+    )
+    const newY = Math.min(
+      Math.max(0, e.clientY - dragStart.y),
+      window.innerHeight - 180
+    )
+
+    setFloatingPosition({ x: newX, y: newY })
+  }
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleDrag as any)
+      document.addEventListener('mouseup', handleDragEnd)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleDrag as any)
+      document.removeEventListener('mouseup', handleDragEnd)
+    }
+  }, [isDragging])
+
+  // Add the floating video component
+  const FloatingVideo = () => (
+    <div
+      style={{
+        transform: `translate(${floatingPosition.x}px, ${floatingPosition.y}px)`,
+      }}
+      className={`fixed z-50 w-80 aspect-video rounded-lg shadow-xl overflow-hidden
+                  transition-transform duration-200 cursor-move
+                  ${isDragging ? 'scale-105' : ''}`}
+      onMouseDown={handleDragStart}
+    >
+      <iframe
+        src={activeStep.videoUrl}
+        className="w-full h-full"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-coastal-light-grey">
       <div className="sticky top-0 z-50">
@@ -124,7 +210,7 @@ export function PerfectHomePage() {
       
       <div className="flex pt-0">
         {/* Left Sidebar */}
-        <div className="w-72 bg-white h-screen shadow-lg fixed left-0 overflow-y-auto border-r border-coastal-sand top-[64px]">
+        <div className="w-72 bg-white h-[calc(100vh-64px)] shadow-lg fixed left-0 overflow-y-auto border-r border-coastal-sand top-16">
           <div className="p-6">
             <div className="mb-6">
               <h2 className="text-xl font-bold text-coastal-dark-teal mb-2">
@@ -179,8 +265,10 @@ export function PerfectHomePage() {
               </h1>
 
               {/* Video Player Container */}
-              <div className="relative">
-                <div className="aspect-video mb-4 bg-black rounded-lg overflow-hidden">
+              <div className="relative" ref={videoRef}>
+                <div className={`aspect-video mb-4 bg-black rounded-lg overflow-hidden
+                               transition-all duration-300
+                               ${isVideoFloating ? 'opacity-0' : 'opacity-100'}`}>
                   <iframe
                     src={activeStep.videoUrl}
                     className="w-full h-full"
@@ -233,7 +321,7 @@ export function PerfectHomePage() {
               )}
 
               {/* Add Workspace Section */}
-              <div className="bg-white mt-8 ">
+              <div ref={workspaceRef} className="bg-white mt-8">
                 <CourseWorkspace 
                   userEmail={session?.user?.email || ''}
                   courseId={courseId}
@@ -243,6 +331,9 @@ export function PerfectHomePage() {
             </div>
           </div>
         </div>
+
+        {/* Floating video */}
+        {isVideoFloating && <FloatingVideo />}
       </div>
     </div>
   )

@@ -41,17 +41,18 @@ export async function POST(req: Request) {
 async function handleSuccessfulPayment(session: Stripe.PaymentIntent) {
   console.log('💰 Processing successful payment:', session.id)
   
-  const { courseId, userId } = session.metadata as { courseId: string; userId: string }
+  const { courseId, userId, source = 'INTERNAL' } = session.metadata as { 
+    courseId: string; 
+    userId: string;
+    source?: 'INTERNAL' | 'EXTERNAL';
+  }
   
   await prisma.purchase.create({
     data: {
       paymentIntentId: session.id,
-      course: {
-        connect: { id: courseId }
-      },
-      user: {
-        connect: { id: userId }
-      }
+      purchaseSource: source,
+      courseId,
+      userId
     }
   })
 
