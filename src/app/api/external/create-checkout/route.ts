@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/db/prisma'
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
+import Cors from 'cors'
 
 // Add these types at the top
 interface StripeError {
@@ -20,8 +21,29 @@ interface StandardError extends Error {
   cause?: unknown;
 }
 
+// Initialize the cors middleware
+const cors = Cors({
+  methods: ['POST', 'OPTIONS'],
+  origin: '*',
+  credentials: true,
+})
+
+// Helper method to run middleware
+function runMiddleware(req: Request) {
+  return new Promise((resolve, reject) => {
+    cors(req as any, {} as any, (result: any) => {
+      if (result instanceof Error) {
+        return reject(result)
+      }
+      return resolve(result)
+    })
+  })
+}
+
 export async function OPTIONS() {
   console.log('🔍 OPTIONS request received')
+  await runMiddleware(new Request('https://dummy-url.com'))
+  
   return new NextResponse(null, {
     status: 200,
     headers: {
@@ -35,6 +57,8 @@ export async function OPTIONS() {
 
 export async function POST(req: Request) {
   console.log('🚀 POST request received')
+  await runMiddleware(req)
+  
   const origin = headers().get('origin')
   console.log('🔍 Request origin:', origin)
   console.log('🔍 Request headers:', Object.fromEntries(headers()))

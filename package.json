@@ -20,6 +20,7 @@
     "@stripe/stripe-js": "^2.4.0",
     "@types/lodash": "^4.17.13",
     "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.2",
     "lodash": "^4.17.21",
@@ -37,6 +38,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
     "@types/node": "^20.17.9",
     "@types/react": "^18.2.39",
     "@types/react-dom": "^18.2.17",
