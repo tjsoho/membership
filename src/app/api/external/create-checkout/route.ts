@@ -4,54 +4,101 @@ import { prisma } from '@/lib/db/prisma'
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 
-// Add OPTIONS handler for CORS preflight
+// Add these types at the top
+interface StripeError {
+  type: string;
+  message: string;
+  stack?: string;
+  cause?: unknown;
+}
+
+// Standard error interface
+interface StandardError extends Error {
+  name: string;
+  message: string;
+  stack?: string;
+  cause?: unknown;
+}
+
 export async function OPTIONS() {
+  console.log('🔍 OPTIONS request received')
   return new NextResponse(null, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
     },
   })
 }
 
 export async function POST(req: Request) {
+  console.log('🚀 POST request received')
   const origin = headers().get('origin')
+  console.log('🔍 Request origin:', origin)
+  console.log('🔍 Request headers:', Object.fromEntries(headers()))
   
   try {
-    const { courseId, email, source } = await req.json()
-    console.log('Received request:', { courseId, email, source }) // Debug log
-
-    // 1. Get course details
-    const course = await prisma.course.findUnique({
-      where: { id: courseId }
-    })
-    console.log('Found course:', course) // Debug log
-
-    if (!course) {
-      console.log('Course not found for ID:', courseId) // Debug log
+    // Validate request body
+    const body = await req.json()
+    console.log('📦 Request body:', body)
+    
+    const { courseId, email, source } = body
+    
+    if (!courseId || !email) {
+      console.error('❌ Missing required fields:', { courseId, email })
       return new NextResponse(
-        JSON.stringify({ message: 'Course not found' }), 
+        JSON.stringify({ message: 'Missing required fields' }), 
         { 
-          status: 404,
+          status: 400,
           headers: {
-            'Access-Control-Allow-Origin': origin || '*',
+            'Access-Control-Allow-Origin': '*',
             'Content-Type': 'application/json',
           }
         }
       )
     }
 
-    // 2. Create Stripe checkout session
-    console.log('Creating Stripe session for course:', course.title) // Debug log
-    const isProduction = process.env.NODE_ENV === 'production';
+    // Get course details
+    console.log('🔍 Finding course:', courseId)
+    const course = await prisma.course.findUnique({
+      where: { id: courseId }
+    })
+    console.log('📦 Course details:', course)
+
+    if (!course) {
+      console.error('❌ Course not found:', courseId)
+      return new NextResponse(
+        JSON.stringify({ message: 'Course not found' }), 
+        { 
+          status: 404,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'application/json',
+          }
+        }
+      )
+    }
+
+    // Set up URLs
+    const isProduction = process.env.NODE_ENV === 'production'
+    console.log('🔍 Environment:', { 
+      isProduction, 
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+      LANDING_PAGE_URL: process.env.LANDING_PAGE_URL
+    })
+
     const cancelUrl = isProduction
-      ? `${process.env.LANDING_PAGE_URL || 'https://www.savetime-makemoney.com/'}/cancel`
-      : 'http://localhost:3000/cancel';
+      ? `${process.env.LANDING_PAGE_URL || 'https://www.savetime-makemoney.com'}/cancel`
+      : 'http://localhost:3000/cancel'
 
-    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/courses/${courseId}/success?session_id={CHECKOUT_SESSION_ID}`;
+    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/courses/${courseId}/success?session_id={CHECKOUT_SESSION_ID}`
 
+    console.log('🔍 URLs:', { cancelUrl, successUrl })
+
+    // Create Stripe session
+    console.log('💳 Creating Stripe session')
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -76,35 +123,76 @@ export async function POST(req: Request) {
         source: 'EXTERNAL'
       }
     })
-    console.log('Stripe session created:', session.id) // Debug log
+
+    console.log('✅ Stripe session created:', {
+      sessionId: session.id,
+      url: session.url
+    })
 
     return new NextResponse(
-      JSON.stringify({ checkoutUrl: session.url }), 
+      JSON.stringify({ 
+        checkoutUrl: session.url,
+        sessionId: session.id // Optional: include for debugging
+      }), 
       {
         status: 200,
         headers: {
-          'Access-Control-Allow-Origin': origin || '*',
+          'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         }
       }
     )
-  } catch (error) {
-    // More detailed error logging
-    console.error('Checkout error details:', {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    })
+  } catch (err: unknown) {
+    // Log the raw error first
+    console.error('💥 Raw error:', err)
+
+    // Type guard function
+    const isStripeError = (error: unknown): error is StripeError => {
+      return (error as StripeError)?.type === 'StripeError';
+    }
+
+    // Safe error logging
+    if (err instanceof Error) {
+      console.error('💥 Standard error:', {
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
+        cause: err.cause
+      })
+    } else if (isStripeError(err)) {
+      console.error('💳 Stripe error:', {
+        type: err.type,
+        message: err.message,
+        stack: err.stack
+      })
+    } else {
+      console.error('💥 Unknown error type:', err)
+    }
     
+    // Safe error response
+    const errorMessage = err instanceof Error ? err.message : 
+                        isStripeError(err) ? err.message : 
+                        'Unknown error occurred';
+    
+    const errorDetails = process.env.NODE_ENV === 'development' 
+      ? (err instanceof Error ? err.stack : JSON.stringify(err))
+      : undefined;
+
     return new NextResponse(
       JSON.stringify({ 
         message: 'Failed to create checkout session',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: errorMessage,
+        details: errorDetails
       }), 
       { 
         status: 500,
         headers: {
-          'Access-Control-Allow-Origin': origin || '*',
+          'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         }
       }
     )
