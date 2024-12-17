@@ -1,10 +1,27 @@
 // src/app/api/external/create-checkout/route.ts
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/db/prisma'
+import { headers } from 'next/headers'
+import { NextResponse } from 'next/server'
+
+// Add OPTIONS handler for CORS preflight
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
+}
 
 export async function POST(req: Request) {
+  const origin = headers().get('origin')
+  
   try {
     const { courseId, email, source } = await req.json()
+    console.log('Received request:', { courseId, email, source }) // Debug log
 
     // 1. Get course details
     const course = await prisma.course.findUnique({
@@ -12,7 +29,16 @@ export async function POST(req: Request) {
     })
 
     if (!course) {
-      return new Response('Course not found', { status: 404 })
+      return new NextResponse(
+        JSON.stringify({ message: 'Course not found' }), 
+        { 
+          status: 404,
+          headers: {
+            'Access-Control-Allow-Origin': origin || '*',
+            'Content-Type': 'application/json',
+          }
+        }
+      )
     }
 
     // 2. Create Stripe checkout session
@@ -33,7 +59,7 @@ export async function POST(req: Request) {
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/courses/${courseId}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.LANDING_PAGE_URL}/cancel`,
-      customer_email: email, // Pre-fill email
+      customer_email: email,
       metadata: {
         courseId,
         email,
@@ -41,9 +67,27 @@ export async function POST(req: Request) {
       }
     })
 
-    return new Response(JSON.stringify({ checkoutUrl: session.url }))
+    return new NextResponse(
+      JSON.stringify({ checkoutUrl: session.url }), 
+      {
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': origin || '*',
+          'Content-Type': 'application/json',
+        }
+      }
+    )
   } catch (error) {
     console.error('Failed to create checkout session:', error)
-    return new Response('Failed to create checkout session', { status: 500 })
+    return new NextResponse(
+      JSON.stringify({ message: 'Failed to create checkout session' }), 
+      { 
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': origin || '*',
+          'Content-Type': 'application/json',
+        }
+      }
+    )
   }
 }
