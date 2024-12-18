@@ -58,7 +58,7 @@ export async function POST(req: Request) {
       )
     }
 
-    // Create payment intent
+    // Create payment intent with product details
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: currency || 'aud',
@@ -66,12 +66,19 @@ export async function POST(req: Request) {
         courseId,
         email,
         source: 'EXTERNAL'
-      }
+      },
+      description: `Purchase of ${course.title}`,
+      statement_descriptor: 'Course Purchase',
+      statement_descriptor_suffix: course.title.substring(0, 22), // Stripe limit
     })
 
     return new NextResponse(
       JSON.stringify({ 
-        clientSecret: paymentIntent.client_secret 
+        clientSecret: paymentIntent.client_secret,
+        course: {
+          title: course.title,
+          price: course.price
+        }
       }), 
       {
         status: 200,
