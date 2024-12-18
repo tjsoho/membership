@@ -28,18 +28,13 @@ const allowedOrigins = [
 ];
 
 // CORS headers helper
-const corsHeaders = (origin: string | null) => {
-  console.log('🔍 Checking origin:', origin)
-  const validOrigin = allowedOrigins.includes(origin || '') ? origin : allowedOrigins[0]
-  
-  return {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': validOrigin || '*', // Fallback to * if null
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Max-Age': '86400',
-  } as const // Type assertion to make TypeScript happy
-}
+const corsHeaders = (origin: string | null): HeadersInit => ({
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? origin || '*' : allowedOrigins[0],
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400',
+})
 
 export async function OPTIONS(req: Request) {
   const origin = req.headers.get('origin')
@@ -69,10 +64,7 @@ export async function POST(req: Request) {
         JSON.stringify({ message: 'Missing required fields' }), 
         { 
           status: 400,
-          headers: {
-            ...corsHeaders(origin),
-            'Content-Type': 'application/json',
-          }
+          headers: corsHeaders(origin)
         }
       )
     }
@@ -90,10 +82,7 @@ export async function POST(req: Request) {
         JSON.stringify({ message: 'Course not found' }), 
         { 
           status: 404,
-          headers: {
-            ...corsHeaders(origin),
-            'Content-Type': 'application/json',
-          }
+          headers: corsHeaders(origin)
         }
       )
     }
@@ -131,7 +120,7 @@ export async function POST(req: Request) {
         },
       ],
       mode: 'payment',
-      success_url: successUrl,
+      success_url: 'https://www.savvybusinesshub.com',
       cancel_url: cancelUrl,
       customer_email: email,
       metadata: {
@@ -147,66 +136,21 @@ export async function POST(req: Request) {
     })
 
     return new NextResponse(
-      JSON.stringify({ 
-        checkoutUrl: session.url,
-        sessionId: session.id
-      }), 
-      {
+      JSON.stringify({ sessionId: session.id }), 
+      { 
         status: 200,
-        headers: {
-          ...corsHeaders(origin),
-          'Content-Type': 'application/json',
-        }
+        headers: corsHeaders(origin)
       }
     )
-  } catch (err: unknown) {
-    // Log the raw error first
-    console.error('💥 Raw error:', err)
-
-    // Type guard function
-    const isStripeError = (error: unknown): error is StripeError => {
-      return (error as StripeError)?.type === 'StripeError';
-    }
-
-    // Safe error logging
-    if (err instanceof Error) {
-      console.error('💥 Standard error:', {
-        name: err.name,
-        message: err.message,
-        stack: err.stack,
-        cause: err.cause
-      })
-    } else if (isStripeError(err)) {
-      console.error('💳 Stripe error:', {
-        type: err.type,
-        message: err.message,
-        stack: err.stack
-      })
-    } else {
-      console.error('💥 Unknown error type:', err)
-    }
-    
-    // Safe error response
-    const errorMessage = err instanceof Error ? err.message : 
-                        isStripeError(err) ? err.message : 
-                        'Unknown error occurred';
-    
-    const errorDetails = process.env.NODE_ENV === 'development' 
-      ? (err instanceof Error ? err.stack : JSON.stringify(err))
-      : undefined;
-
+  } catch (err) {
     return new NextResponse(
       JSON.stringify({ 
         message: 'Failed to create checkout session',
-        error: errorMessage,
-        details: errorDetails
+        error: err instanceof Error ? err.message : 'Unknown error'
       }), 
       { 
         status: 500,
-        headers: {
-          ...corsHeaders(origin),
-          'Content-Type': 'application/json',
-        }
+        headers: corsHeaders(origin)
       }
     )
   }
