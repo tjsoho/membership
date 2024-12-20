@@ -1,6 +1,6 @@
 import { stripe } from '@/lib/stripe'
-import { prisma } from '@/lib/db/prisma'
-import { headers } from 'next/headers'
+// import { prisma } from '@/lib/db/prisma'
+// import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 // CORS headers helper (reuse from your other endpoint)
@@ -29,56 +29,27 @@ export async function POST(req: Request) {
   const origin = req.headers.get('origin')
   
   try {
-    const body = await req.json()
-    const { courseId, email, amount, currency } = body
+    const { courseId, email, amount, currency, source } = await req.json()
 
-    // Validate inputs
-    if (!courseId || !email || !amount) {
-      return new NextResponse(
-        JSON.stringify({ message: 'Missing required fields' }), 
-        { 
-          status: 400,
-          headers: corsHeaders(origin)
-        }
-      )
-    }
-
-    // Get course details
-    const course = await prisma.course.findUnique({
-      where: { id: courseId }
-    })
-
-    if (!course) {
-      return new NextResponse(
-        JSON.stringify({ message: 'Course not found' }), 
-        { 
-          status: 404,
-          headers: corsHeaders(origin)
-        }
-      )
-    }
-
-    // Create payment intent with product details
+    // Create payment intent with metadata
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
-      currency: currency || 'aud',
+      currency,
       metadata: {
+        source: 'EXTERNAL',
         courseId,
-        email,
-        source: 'EXTERNAL'
-      },
-      description: `Purchase of ${course.title}`,
-      statement_descriptor: 'Course Purchase',
-      statement_descriptor_suffix: course.title.substring(0, 22), // Stripe limit
+        email
+      }
+    })
+
+    console.log('✅ Created payment intent with metadata:', {
+      id: paymentIntent.id,
+      metadata: paymentIntent.metadata
     })
 
     return new NextResponse(
       JSON.stringify({ 
-        clientSecret: paymentIntent.client_secret,
-        course: {
-          title: course.title,
-          price: course.price
-        }
+        clientSecret: paymentIntent.client_secret 
       }), 
       {
         status: 200,
@@ -86,16 +57,13 @@ export async function POST(req: Request) {
       }
     )
   } catch (err) {
-    console.error('Payment intent creation error:', err)
+    console.error('💥 Error:', err)
     return new NextResponse(
       JSON.stringify({ 
         message: 'Failed to create payment intent',
         error: err instanceof Error ? err.message : 'Unknown error'
       }), 
-      { 
-        status: 500,
-        headers: corsHeaders(origin)
-      }
+      { status: 500, headers: corsHeaders(origin) }
     )
   }
 } 
