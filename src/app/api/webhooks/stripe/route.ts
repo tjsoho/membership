@@ -17,51 +17,93 @@ export async function POST(req: Request) {
   const signature = headers().get('stripe-signature') as string
   
   try {
+    console.log('🎯 Receiving webhook...')
+    
     const event = stripe.webhooks.constructEvent(
       body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!
     )
 
-    console.log('🎉 Webhook event received:', event.type)
+    console.log('🎉 Event type:', event.type)
 
-    // Handle checkout.session.completed (for redirect flow)
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as Stripe.Checkout.Session
-      console.log('💳 Checkout session completed:', {
-        sessionId: session.id,
-        metadata: session.metadata
-      })
-
-      if (session.metadata?.source === 'EXTERNAL') {
-        await handleExternalPurchase(
-          session.metadata.email,
-          session.metadata.courseId,
-          session.payment_intent as string
-        )
-      }
-    }
-
-    // Handle payment_intent.succeeded (for modal flow)
     if (event.type === 'payment_intent.succeeded') {
       const paymentIntent = event.data.object as Stripe.PaymentIntent
-      console.log('💰 Payment intent succeeded:', {
+      console.log('💰 Payment succeeded:', {
         id: paymentIntent.id,
         metadata: paymentIntent.metadata
       })
 
       if (paymentIntent.metadata?.source === 'EXTERNAL') {
-        await handleExternalPurchase(
-          paymentIntent.metadata.email,
-          paymentIntent.metadata.courseId,
-          paymentIntent.id
-        )
+        // Check if user already exists
+        let user = await prisma.user.findUnique({
+          where: { email: paymentIntent.metadata.email }
+        })
+
+        if (!user) {
+          // Create new user
+          user = await prisma.user.create({
+            data: {
+              email: paymentIntent.metadata.email,
+              name: 'Pending Registration',
+              password: `TEMP_${Math.random().toString(36).slice(2)}_${Date.now()}`,
+              emailVerified: null,
+              image: null
+            }
+          })
+          console.log('👤 Created new user:', user.id)
+        } else {
+          console.log('👤 Found existing user:', user.id)
+        }
+
+        // Create purchase record
+        const purchase = await prisma.purchase.create({
+          data: {
+            userId: user.id,
+            courseId: paymentIntent.metadata.courseId,
+            paymentIntentId: paymentIntent.id,
+            purchaseSource: 'EXTERNAL'
+          }
+        })
+        console.log('💰 Created purchase:', purchase.id)
+
+        // Find existing access
+        const existingAccess = await prisma.courseAccess.findFirst({
+          where: {
+            userId: user.id,
+            courseId: paymentIntent.metadata.courseId
+          }
+        })
+
+        if (existingAccess) {
+          // Update existing access
+          await prisma.courseAccess.update({
+            where: { id: existingAccess.id },
+            data: { active: true }
+          })
+          console.log('🔄 Updated course access:', existingAccess.id)
+        } else {
+          // Create new access
+          const access = await prisma.courseAccess.create({
+            data: {
+              userId: user.id,
+              courseId: paymentIntent.metadata.courseId,
+              active: true
+            }
+          })
+          console.log('🔑 Created course access:', access.id)
+        }
+
+        // TODO: Send welcome email with login instructions
       }
     }
 
     return new NextResponse(null, { status: 200 })
   } catch (err) {
     console.error('💥 Webhook error:', err)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Full error:', err)
+    }
     return new NextResponse(
       JSON.stringify({ 
         message: 'Webhook error',
