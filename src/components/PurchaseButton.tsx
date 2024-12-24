@@ -27,7 +27,7 @@ export function PurchaseButton({
   if (isUnlocked) {
     return (
       <button
-        className="bg-green-500 text-white px-4 py-2 rounded-md"
+        className="bg-coastal-dark-teal text-white px-4 py-2 rounded-md"
         disabled
       >
         Purchased

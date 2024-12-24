@@ -11,7 +11,7 @@ import {
   ExcalidrawContent,
   ExcalidrawElement 
 } from './ExcalidrawWorkspace'
-import { PUT } from '@/app/api/workspace/route';
+
 import { showToast } from '@/utils/toast'
 
 type TabType = "mindmap" | "notes";
@@ -28,7 +28,6 @@ interface WorkspaceItem {
 interface CourseWorkspaceProps {
   userEmail: string;
   courseId: string;
-  onSend: (file: Blob, title: string, email: string) => Promise<void>;
 }
 
 const convertHtmlToPdf = async (html: string): Promise<Blob> => {
@@ -59,7 +58,6 @@ const convertHtmlToPdf = async (html: string): Promise<Blob> => {
 export function CourseWorkspace({
   userEmail,
   courseId,
-  onSend,
 }: CourseWorkspaceProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>("mindmap");
@@ -231,14 +229,28 @@ export function CourseWorkspace({
 
   const handleSendEmail = async (item: WorkspaceItem) => {
     try {
+      showToast.info('Processing', 'Preparing your workspace item...');
       let fileBlob: Blob;
 
       if (item.type === "MINDMAP") {
         const mindmapContent = item.content as ExcalidrawContent;
         fileBlob = await exportToBlob({
           elements: mindmapContent.elements,
-          mimeType: "application/pdf",
-          appState: mindmapContent.appState || { exportWithDarkMode: false },
+          mimeType: "image/png",
+          appState: {
+            ...mindmapContent.appState,
+            exportWithDarkMode: false,
+            exportBackground: true,
+            viewBackgroundColor: "#ffffff",
+            exportScale: 2,
+            exportPadding: 40,
+          },
+          files: null,
+          getDimensions: (width: number, height: number) => ({
+            width: Math.max(width, 1920),
+            height: Math.max(height, 1080),
+            scale: 2
+          })
         });
       } else {
         const noteHtml = `
@@ -254,10 +266,35 @@ export function CourseWorkspace({
         fileBlob = await convertHtmlToPdf(noteHtml);
       }
 
-      await onSend(fileBlob, item.title, userEmail);
+      const formData = new FormData();
+      formData.append(
+        'file', 
+        new Blob(
+          [fileBlob], 
+          { type: item.type === "MINDMAP" ? 'image/png' : 'application/pdf' }
+        )
+      );
+      formData.append('title', item.title);
+      formData.append('email', userEmail);
+      formData.append('fileType', item.type === "MINDMAP" ? 'mindmap' : 'notes');
+
+      const response = await fetch('/api/workspace/send-email', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to send email');
+      }
+
+      showToast.success('Sent!', 'Your workspace item has been sent to your email');
     } catch (error) {
-      console.error("Failed to send email:", error);
-      alert("Failed to send email. Please try again.");
+      console.error('Failed to send email:', error);
+      showToast.error(
+        'Send Failed', 
+        error instanceof Error ? error.message : 'Unable to send your workspace item'
+      );
     }
   };
 

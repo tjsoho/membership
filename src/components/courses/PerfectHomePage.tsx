@@ -93,29 +93,6 @@ export function PerfectHomePage() {
     // You would implement actual video control here
   }
 
-  const handleSendWorkspaceItem = async (file: Blob, title: string, email: string) => {
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('title', title)
-      formData.append('email', email)
-
-      const response = await fetch('/api/workspace/send-email', {
-        method: 'POST',
-        body: formData
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to send email')
-      }
-
-      alert('Sent successfully!')
-    } catch (error) {
-      console.error('Failed to send:', error)
-      alert('Failed to send. Please try again.')
-    }
-  }
-
   // Add these new states at the top of your component
   const [isVideoFloating, setIsVideoFloating] = useState(false)
   const [floatingPosition, setFloatingPosition] = useState({ x: 16, y: window.innerHeight - 200 })
@@ -143,7 +120,21 @@ export function PerfectHomePage() {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
 
+  // Add state for video time
+  const [videoTime, setVideoTime] = useState(0)
+  const mainVideoRef = useRef<HTMLIFrameElement>(null)
+  const floatingVideoRef = useRef<HTMLIFrameElement>(null)
+
+  // Add videoState to track current time and playing status
+  const [videoState, setVideoState] = useState({
+    currentTime: 0,
+    isPlaying: false
+  })
+
+  // Update drag handlers
   const handleDragStart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
     setIsDragging(true)
     setDragStart({
       x: e.clientX - floatingPosition.x,
@@ -155,51 +146,90 @@ export function PerfectHomePage() {
     setIsDragging(false)
   }
 
-  const handleDrag = (e: React.MouseEvent) => {
-    if (!isDragging) return
-
-    const newX = Math.min(
-      Math.max(0, e.clientX - dragStart.x),
-      window.innerWidth - 320
-    )
-    const newY = Math.min(
-      Math.max(0, e.clientY - dragStart.y),
-      window.innerHeight - 180
-    )
-
-    setFloatingPosition({ x: newX, y: newY })
-  }
-
   useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return
+
+      requestAnimationFrame(() => {
+        const newX = Math.min(
+          Math.max(0, e.clientX - dragStart.x),
+          window.innerWidth - 320
+        )
+        const newY = Math.min(
+          Math.max(0, e.clientY - dragStart.y),
+          window.innerHeight - 200
+        )
+
+        setFloatingPosition({ x: newX, y: newY })
+      })
+    }
+
     if (isDragging) {
-      document.addEventListener('mousemove', handleDrag as any)
+      document.addEventListener('mousemove', handleMouseMove, { passive: true })
       document.addEventListener('mouseup', handleDragEnd)
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleDrag as any)
+      document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleDragEnd)
     }
-  }, [isDragging])
+  }, [isDragging, dragStart.x, dragStart.y])
 
-  // Add the floating video component
+  // Update the FloatingVideo component
   const FloatingVideo = () => (
     <div
       style={{
         transform: `translate(${floatingPosition.x}px, ${floatingPosition.y}px)`,
+        position: 'fixed',
+        zIndex: 50,
+        width: '320px',
+        height: '180px',
       }}
-      className={`fixed z-50 w-80 aspect-video rounded-lg shadow-xl overflow-hidden
-                  transition-transform duration-200 cursor-move
-                  ${isDragging ? 'scale-105' : ''}`}
-      onMouseDown={handleDragStart}
+      className="rounded-lg shadow-xl overflow-hidden group"
     >
+      <div
+        onMouseDown={handleDragStart}
+        className="absolute inset-0 bg-transparent cursor-move z-10 group-hover:bg-black/10 transition-colors"
+      />
       <iframe
-        src={activeStep.videoUrl}
+        key={`floating-${activeStep.id}`}
+        src={`${activeStep.videoUrl}?enablejsapi=1&autoplay=1&start=${Math.floor(videoState.currentTime)}`}
         className="w-full h-full"
+        style={{ pointerEvents: isDragging ? 'none' : 'auto' }}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
       />
     </div>
+  )
+
+  // Update the MainVideo component
+  const MainVideo = () => (
+    <iframe
+      key={`main-${activeStep.id}`}
+      ref={mainVideoRef}
+      src={`${activeStep.videoUrl}?enablejsapi=1`}
+      className="w-full h-full"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen
+      onLoad={() => {
+        if (mainVideoRef.current && (window as any).YT) {
+          new (window as any).YT.Player(mainVideoRef.current, {
+            events: {
+              onStateChange: (event: any) => {
+                setIsPlaying(event.data === 1)
+                if (event.target && event.target.getCurrentTime) {
+                  setVideoState(prev => ({
+                    ...prev,
+                    currentTime: event.target.getCurrentTime(),
+                    isPlaying: event.data === 1
+                  }))
+                }
+              }
+            }
+          })
+        }
+      }}
+    />
   )
 
   return (
@@ -269,12 +299,7 @@ export function PerfectHomePage() {
                 <div className={`aspect-video mb-4 bg-black rounded-lg overflow-hidden
                                transition-all duration-300
                                ${isVideoFloating ? 'opacity-0' : 'opacity-100'}`}>
-                  <iframe
-                    src={activeStep.videoUrl}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
+                  <MainVideo />
                 </div>
 
                 {/* Video Controls */}
@@ -325,7 +350,6 @@ export function PerfectHomePage() {
                 <CourseWorkspace 
                   userEmail={session?.user?.email || ''}
                   courseId={courseId}
-                  onSend={handleSendWorkspaceItem}
                 />
               </div>
             </div>

@@ -1,48 +1,45 @@
 'use client'
 
 import React from 'react'
-import toast from 'react-hot-toast'
-import { CustomToast } from '@/components/ui/CustomToast'
-
-interface ToastType {
-  visible: boolean;
-  id: string;
-}
+import { toast, Toast, ToastOptions } from 'react-hot-toast'
 
 export const showToast = {
-  success: (title: string, message: string) => {
-    return toast.custom((t: ToastType) => React.createElement(CustomToast, {
-      visible: t.visible,
-      type: 'success',
-      title,
-      message,
-      onClose: () => toast.dismiss(t.id)
-    }))
+  success: (title: string, message: string): string => {
+    return toast.success(title + ' - ' + message)
   },
-
-  error: (title: string, message: string) => {
-    return toast.custom((t: ToastType) => React.createElement(CustomToast, {
-      visible: t.visible,
-      type: 'error',
-      title,
-      message,
-      onClose: () => toast.dismiss(t.id)
-    }))
+  
+  error: (title: string, message: string): string => {
+    return toast.error(title + ' - ' + message)
   },
-
-  delete: (title: string, message: string, onConfirm: () => void) => {
-    return toast.custom((t: ToastType) => React.createElement(CustomToast, {
-      visible: t.visible,
-      type: 'delete',
-      title,
-      message,
-      onClose: () => toast.dismiss(t.id),
-      onConfirm: () => {
-        onConfirm()
-        toast.dismiss(t.id)
-      }
-    }), {
-      duration: 5000
+  
+  info: (title: string, message: string): string => {
+    return toast(title + ' - ' + message, {
+      icon: '🔔',
     })
+  },
+  
+  delete: (title: string, message: string, onConfirm: () => void): string => {
+    const toastId = toast(
+      (t: Toast) => title + ' - ' + message + '\nClick to confirm deletion', 
+      {
+        duration: 5000,
+        position: 'top-center',
+        icon: '🗑️',
+      } as ToastOptions
+    );
+
+    // Add event listener after creating toast
+    toast.custom(
+      (t) => {
+        if (t.id === toastId) {
+          onConfirm();
+          toast.dismiss(toastId);
+        }
+        return null;
+      },
+      { id: toastId }
+    );
+
+    return toastId;
   }
 } 
