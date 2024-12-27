@@ -94,9 +94,23 @@ export async function POST(req: Request) {
         return new NextResponse('Invalid mindmap content', { status: 400 })
       }
     } else if (body.type === 'NOTES') {
-      if (typeof body.content !== 'string') {
+      if (!Array.isArray(body.content) || !body.content.length) {
         console.log('API POST - Invalid notes content:', body.content)
         return new NextResponse('Invalid notes content', { status: 400 })
+      }
+      // Validate Slate content structure
+      const isValidSlateContent = body.content.every((node: any) => 
+        typeof node === 'object' && 
+        node.type === 'paragraph' && 
+        Array.isArray(node.children) &&
+        node.children.every((child: any) => 
+          typeof child === 'object' && 
+          'text' in child
+        )
+      )
+      if (!isValidSlateContent) {
+        console.log('API POST - Invalid notes content structure:', body.content)
+        return new NextResponse('Invalid notes content structure', { status: 400 })
       }
     }
 
@@ -112,7 +126,7 @@ export async function POST(req: Request) {
             scrollY: body.content.appState?.scrollY || 0,
           }
         }
-      : body.content
+      : body.content // For notes, use the content directly
 
     console.log('API POST - Creating workspace item with content:', contentToSave)
 
@@ -177,6 +191,27 @@ export async function PUT(req: Request) {
           scrollY: body.content.appState?.scrollY || 0,
         }
       }
+    } else if (currentItem.type === 'NOTES') {
+      // Validate Slate content structure
+      if (!Array.isArray(body.content) || !body.content.length) {
+        return new NextResponse('Invalid notes content', { status: 400 })
+      }
+      
+      const isValidSlateContent = body.content.every((node: any) => 
+        typeof node === 'object' && 
+        node.type === 'paragraph' && 
+        Array.isArray(node.children) &&
+        node.children.every((child: any) => 
+          typeof child === 'object' && 
+          'text' in child
+        )
+      )
+      
+      if (!isValidSlateContent) {
+        return new NextResponse('Invalid notes content structure', { status: 400 })
+      }
+      
+      contentToSave = body.content
     }
 
     const updated = await prisma.workspaceItem.update({

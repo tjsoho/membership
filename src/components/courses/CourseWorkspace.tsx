@@ -1,27 +1,29 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react'
-import { exportToBlob } from '@excalidraw/excalidraw'
-import { IoSave, IoMail, IoClose } from 'react-icons/io5'
-import { MdNote, MdDraw, MdExpandMore, MdExpandLess } from 'react-icons/md'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
-import { 
-  ExcalidrawWorkspace, 
+import { useState, useRef, useEffect, useCallback } from "react";
+import { exportToBlob } from "@excalidraw/excalidraw";
+import { IoSave, IoMail, IoClose } from "react-icons/io5";
+import { MdNote, MdDraw, MdExpandMore, MdExpandLess } from "react-icons/md";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import {
+  ExcalidrawWorkspace,
   ExcalidrawContent,
-  ExcalidrawElement 
-} from './ExcalidrawWorkspace'
+  ExcalidrawElement,
+} from "./ExcalidrawWorkspace";
 
-import { showToast } from '@/utils/toast'
+import { showToast } from "@/utils/toast";
+import { RichTextEditor } from "@/components/RichTextEditor";
+import { Descendant } from "slate";
 
-type TabType = "mindmap" | "notes";
+type TabType = "mindmap" | "notes" | null;
 type WorkspaceType = "MINDMAP" | "NOTES";
 
 interface WorkspaceItem {
   id: string;
   title: string;
   type: WorkspaceType;
-  content: ExcalidrawContent | string;
+  content: ExcalidrawContent | Descendant[] | string;
   createdAt: Date;
 }
 
@@ -29,6 +31,14 @@ interface CourseWorkspaceProps {
   userEmail: string;
   courseId: string;
 }
+
+type AppState = {
+  viewBackgroundColor: string;
+  currentItemFontFamily: number;
+  zoom: { value: number };
+  scrollX: number;
+  scrollY: number;
+};
 
 const convertHtmlToPdf = async (html: string): Promise<Blob> => {
   const container = document.createElement("div");
@@ -55,18 +65,34 @@ const convertHtmlToPdf = async (html: string): Promise<Blob> => {
   }
 };
 
-export function CourseWorkspace({
-  userEmail,
-  courseId,
-}: CourseWorkspaceProps) {
+const defaultNoteContent: Descendant[] = [
+  {
+    type: "paragraph",
+    children: [{ text: "" }],
+  },
+];
+
+export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabType>("mindmap");
+  const [activeTab, setActiveTab] = useState<TabType>(null);
   const [workspaceItems, setWorkspaceItems] = useState<WorkspaceItem[]>([]);
   const [currentTitle, setCurrentTitle] = useState("");
-  const [noteContent, setNoteContent] = useState("");
+  const [noteContent, setNoteContent] =
+    useState<Descendant[]>(defaultNoteContent);
   const [editingItem, setEditingItem] = useState<WorkspaceItem | null>(null);
   const [sceneVersion, setSceneVersion] = useState<number>(0);
   const excalidrawRef = useRef<any>(null);
+
+  const [tmpElement, setTmpElement] = useState<ExcalidrawElement[]>([]);
+  const [tmpAppState, setTmpAppState] = useState<AppState>({
+    viewBackgroundColor: "#ffffff",
+    currentItemFontFamily: 1,
+    zoom: { value: 1 },
+    scrollX: 0,
+    scrollY: 0,
+  });
+
+  const [showTypeSelector, setShowTypeSelector] = useState(false);
 
   useEffect(() => {
     const loadItems = async () => {
@@ -90,52 +116,61 @@ export function CourseWorkspace({
 
   const fetchWorkspaceItems = async () => {
     try {
-      console.log('Fetching workspace items for course:', courseId)
-      const response = await fetch(`/api/workspace?courseId=${courseId}`)
+      console.log("Fetching workspace items for course:", courseId);
+      const response = await fetch(`/api/workspace?courseId=${courseId}`);
 
       if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Failed to fetch workspace items: ${errorText}`)
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch workspace items: ${errorText}`);
       }
-      
-      const items = await response.json()
-      console.log('Fetched workspace items:', items)
-      setWorkspaceItems(items)
+
+      const items = await response.json();
+      console.log("Fetched workspace items:", items);
+      setWorkspaceItems(items);
     } catch (error) {
-      console.error('Error fetching workspace items:', error)
+      console.error("Error fetching workspace items:", error);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchWorkspaceItems()
-  }, [courseId])
+    fetchWorkspaceItems();
+  }, [courseId]);
 
   const handleSave = async () => {
     if (!currentTitle) {
-      showToast.error('Error', 'Please enter a title')
-      return
+      showToast.error("Error", "Please enter a title");
+      return;
     }
 
     try {
-      let content: ExcalidrawContent | string
-      
-      if (activeTab === 'mindmap') {
-        const elements = tmpElement;
-        const appState = tmpAppState;
-        console.log("appstate",appState);
-        content = {
-          elements,
-          appState: {
-            viewBackgroundColor: appState?.viewBackgroundColor || '#ffffff',
-            currentItemFontFamily: appState?.currentItemFontFamily || 1,
-            zoom: appState?.zoom || { value: 1 },
-            scrollX: appState?.scrollX || 0,
-            scrollY: appState?.scrollY || 0,
-          }
+      let content: ExcalidrawContent | Descendant[];
+
+      if (activeTab === "mindmap") {
+        if (!tmpElement || !tmpAppState) {
+          throw new Error("Mind map content is not ready");
         }
-        console.log('Saving mindmap content:', content)
+
+        content = {
+          elements: tmpElement || [],
+          appState: {
+            viewBackgroundColor: tmpAppState?.viewBackgroundColor || "#ffffff",
+            currentItemFontFamily: tmpAppState?.currentItemFontFamily || 1,
+            zoom: tmpAppState?.zoom || { value: 1 },
+            scrollX: tmpAppState?.scrollX || 0,
+            scrollY: tmpAppState?.scrollY || 0,
+          },
+        };
       } else {
-        content = noteContent
+        // Ensure we have valid Slate content
+        content =
+          noteContent.length > 0
+            ? noteContent
+            : [
+                {
+                  type: "paragraph",
+                  children: [{ text: "" }],
+                },
+              ];
       }
 
       const payload = {
@@ -143,93 +178,121 @@ export function CourseWorkspace({
         type: getWorkspaceType(activeTab),
         content: content,
         courseId,
-      }
+      };
 
-      console.log('Saving with payload:', payload)
+      console.log("Saving with payload:", payload);
 
-      const method = editingItem ? 'PUT' : 'POST'
-      const url = '/api/workspace';
+      const method = editingItem ? "PUT" : "POST";
+      const url = "/api/workspace";
 
       const response = await fetch(url, {
-        method : method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingItem ? {
-          id: editingItem.id,
-          ...payload
-        } : payload),
-      })
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          editingItem
+            ? {
+                id: editingItem.id,
+                ...payload,
+              }
+            : payload
+        ),
+      });
 
       if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`)
+        const errorText = await response.text();
+        throw new Error(
+          `HTTP error! status: ${response.status}, message: ${errorText}`
+        );
       }
 
-      const savedItem = await response.json()
-      console.log('Saved item:', savedItem)
-      
+      const savedItem = await response.json();
+      console.log("Saved item:", savedItem);
+
       if (editingItem) {
-        setWorkspaceItems(items => 
-          items.map(item => item.id === savedItem.id ? savedItem : item)
-        )
+        setWorkspaceItems((items) =>
+          items.map((item) => (item.id === savedItem.id ? savedItem : item))
+        );
       } else {
-        setWorkspaceItems(items => [savedItem, ...items])
+        setWorkspaceItems((items) => [savedItem, ...items]);
       }
 
-      setEditingItem(savedItem)
+      setEditingItem(savedItem);
 
       showToast.success(
-        editingItem ? 'Updated' : 'Saved',
-        editingItem ? 'Item has been successfully updated' : 'Item has been successfully saved'
-      )
+        editingItem ? "Updated" : "Saved",
+        editingItem
+          ? "Item has been successfully updated"
+          : "Item has been successfully saved"
+      );
     } catch (error) {
-      showToast.error('Error', (error as Error).message || 'Failed to save item')
+      console.error("Save error:", error);
+      showToast.error(
+        "Error",
+        (error as Error).message || "Failed to save item"
+      );
     }
-  }
+  };
 
   const handleEdit = (item: WorkspaceItem) => {
-    console.log('Editing item:', item)
-    console.log('Raw content:', item.content)
-    
-    setActiveTab(item.type === 'MINDMAP' ? 'mindmap' : 'notes')
-    setCurrentTitle(item.title)
-    
-    if (item.type === 'MINDMAP') {
+    console.log("Editing item:", item);
+    console.log("Raw content:", item.content);
+
+    setActiveTab(item.type === "MINDMAP" ? "mindmap" : "notes");
+    setCurrentTitle(item.title);
+
+    if (item.type === "MINDMAP") {
       try {
-        const savedContent = item.content as ExcalidrawContent
-        console.log('Parsed Excalidraw content:', savedContent)
-        
+        const savedContent = item.content as ExcalidrawContent;
+        console.log("Parsed Excalidraw content:", savedContent);
+
         if (!savedContent || !savedContent.elements) {
-          console.error('Invalid mindmap content structure')
-          return
+          console.error("Invalid mindmap content structure");
+          return;
         }
-        
+
         // Initialize with empty arrays if needed
         const content: ExcalidrawContent = {
-          elements: Array.isArray(savedContent.elements) ? savedContent.elements : [],
+          elements: Array.isArray(savedContent.elements)
+            ? savedContent.elements
+            : [],
           appState: {
-            viewBackgroundColor: savedContent.appState?.viewBackgroundColor || '#ffffff',
-            currentItemFontFamily: savedContent.appState?.currentItemFontFamily || 1,
+            viewBackgroundColor:
+              savedContent.appState?.viewBackgroundColor || "#ffffff",
+            currentItemFontFamily:
+              savedContent.appState?.currentItemFontFamily || 1,
             zoom: savedContent.appState?.zoom || { value: 1 },
             scrollX: savedContent.appState?.scrollX || 0,
             scrollY: savedContent.appState?.scrollY || 0,
-          }
-        }
-        
-        console.log('Initialized content:', content)
-        setEditingItem(item)
-        
+          },
+        };
+
+        console.log("Initialized content:", content);
+        setEditingItem(item);
       } catch (error) {
-        console.error('Error parsing Excalidraw content:', error)
+        console.error("Error parsing Excalidraw content:", error);
       }
     } else {
-      setEditingItem(item)
-      setNoteContent(item.content as string)
+      setEditingItem(item);
+      if (Array.isArray(item.content)) {
+        setNoteContent(item.content as Descendant[]);
+      } else if (typeof item.content === "string") {
+        // Handle legacy string content or convert from string if needed
+        setNoteContent([
+          {
+            type: "paragraph",
+            children: [{ text: item.content }],
+          },
+        ]);
+      } else {
+        // Fallback to default content
+        setNoteContent(defaultNoteContent);
+      }
     }
-  }
+  };
 
   const handleSendEmail = async (item: WorkspaceItem) => {
     try {
-      showToast.info('Processing', 'Preparing your workspace item...');
+      showToast.info("Processing", "Preparing your workspace item...");
       let fileBlob: Blob;
 
       if (item.type === "MINDMAP") {
@@ -249,8 +312,8 @@ export function CourseWorkspace({
           getDimensions: (width: number, height: number) => ({
             width: Math.max(width, 1920),
             height: Math.max(height, 1080),
-            scale: 2
-          })
+            scale: 2,
+          }),
         });
       } else {
         const noteHtml = `
@@ -268,32 +331,39 @@ export function CourseWorkspace({
 
       const formData = new FormData();
       formData.append(
-        'file', 
-        new Blob(
-          [fileBlob], 
-          { type: item.type === "MINDMAP" ? 'image/png' : 'application/pdf' }
-        )
+        "file",
+        new Blob([fileBlob], {
+          type: item.type === "MINDMAP" ? "image/png" : "application/pdf",
+        })
       );
-      formData.append('title', item.title);
-      formData.append('email', userEmail);
-      formData.append('fileType', item.type === "MINDMAP" ? 'mindmap' : 'notes');
+      formData.append("title", item.title);
+      formData.append("email", userEmail);
+      formData.append(
+        "fileType",
+        item.type === "MINDMAP" ? "mindmap" : "notes"
+      );
 
-      const response = await fetch('/api/workspace/send-email', {
-        method: 'POST',
-        body: formData
+      const response = await fetch("/api/workspace/send-email", {
+        method: "POST",
+        body: formData,
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to send email');
+        throw new Error(error.message || "Failed to send email");
       }
 
-      showToast.success('Sent!', 'Your workspace item has been sent to your email');
+      showToast.success(
+        "Sent!",
+        "Your workspace item has been sent to your email"
+      );
     } catch (error) {
-      console.error('Failed to send email:', error);
+      console.error("Failed to send email:", error);
       showToast.error(
-        'Send Failed', 
-        error instanceof Error ? error.message : 'Unable to send your workspace item'
+        "Send Failed",
+        error instanceof Error
+          ? error.message
+          : "Unable to send your workspace item"
       );
     }
   };
@@ -301,85 +371,107 @@ export function CourseWorkspace({
   const handleNew = () => {
     setEditingItem(null);
     setCurrentTitle("");
-    setNoteContent("");
-    if (tmpAppState.current) {
-      tmpAppState.current.updateScene({
-        elements: [],
-        appState: {
-          viewBackgroundColor: "#ffffff",
-          currentItemFontFamily: 1,
-        },
+    setNoteContent(defaultNoteContent);
+
+    // Only update Excalidraw state if we're in mindmap mode
+    if (activeTab === "mindmap" && tmpAppState) {
+      setTmpElement([]);
+      setTmpAppState({
+        viewBackgroundColor: "#ffffff",
+        currentItemFontFamily: 1,
+        zoom: { value: 1 },
+        scrollX: 0,
+        scrollY: 0,
       });
     }
   };
 
   const handleExcalidrawSave = (content: ExcalidrawContent) => {
-    if (!editingItem) return
-    
-    console.log('Handling Excalidraw save:', content)
-    
-    fetch('/api/workspace', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+    if (!editingItem) return;
+
+    console.log("Handling Excalidraw save:", content);
+
+    fetch("/api/workspace", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         id: editingItem.id,
         title: editingItem.title,
         content: content,
       }),
-    }).catch(error => {
-      console.error('Error auto-saving:', error)
-    })
-  }
+    }).catch((error) => {
+      console.error("Error auto-saving:", error);
+    });
+  };
 
-  const [tmpElement,setTmpElement] = useState<any>();
-  const [tmpAppState,setTmpAppState] = useState<any>();
+  const handleDelete = useCallback(
+    (e: React.MouseEvent, itemId: string) => {
+      e.stopPropagation(); // Prevent the parent button's onClick from firing
 
-  const handleDelete = (itemId: string) => {
-    showToast.delete(
-      'Confirm Delete',
-      'Are you sure you want to delete this item?',
-      () => deleteItem(itemId)
-    )
-  }
+      showToast.delete(
+        "Confirm Delete",
+        "Are you sure you want to delete this item?",
+        async () => {
+          try {
+            const response = await fetch(`/api/workspace?id=${itemId}`, {
+              method: "DELETE",
+            });
 
-  const deleteItem = async (itemId: string) => {
-    try {
-      const response = await fetch(`/api/workspace?id=${itemId}`, {
-        method: 'DELETE',
-      })
+            if (!response.ok) throw new Error("Failed to delete item");
 
-      if (!response.ok) throw new Error('Failed to delete item')
+            // Update the items list
+            setWorkspaceItems((prevItems) =>
+              prevItems.filter((item) => item.id !== itemId)
+            );
 
-      setWorkspaceItems(items => items.filter(item => item.id !== itemId))
-      
-      if (editingItem?.id === itemId) {
-        setEditingItem(null)
-        setCurrentTitle('')
-        setNoteContent('')
-      }
+            // Clear the editing state if we're deleting the currently edited item
+            if (editingItem?.id === itemId) {
+              setEditingItem(null);
+              setCurrentTitle("");
+              setNoteContent(defaultNoteContent);
+            }
 
-      showToast.success('Deleted', 'Item has been successfully deleted')
-    } catch (error) {
-      console.error('Failed to delete item:', error)
-      showToast.error('Error', 'Failed to delete item')
-    }
-  }
+            showToast.success("Deleted", "Item has been successfully deleted");
+          } catch (error) {
+            console.error("Failed to delete item:", error);
+            showToast.error("Error", "Failed to delete item");
+          }
+        }
+      );
+    },
+    [editingItem]
+  );
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-coastal-sand overflow-hidden">
       {/* Workspace Header */}
       <div className="border-b border-coastal-sand p-4">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-4">
           <h2 className="text-3xl font-medium text-coastal-dark-teal">
             Your Workspace
           </h2>
           <div className="flex gap-2">
-            <button
-              onClick={handleNew}
-              className="px-4 py-2 text-white hover:bg-coastal-light-grey bg-coastal-dark-teal hover:text-coastal-dark-teal hover:border-2 hover:border-coastal-dark-teal rounded-lg "
-            >
-              New
-            </button>
+            {!showTypeSelector && (
+              <button
+                onClick={() => {
+                  setShowTypeSelector(true);
+                  setEditingItem(null);
+                  setCurrentTitle("");
+                  setNoteContent(defaultNoteContent);
+                  setTmpElement([]);
+                  setTmpAppState({
+                    viewBackgroundColor: "#ffffff",
+                    currentItemFontFamily: 1,
+                    zoom: { value: 1 },
+                    scrollX: 0,
+                    scrollY: 0,
+                  });
+                }}
+                className="px-4 py-2 text-white bg-coastal-dark-teal hover:bg-coastal-light-grey hover:text-coastal-dark-teal hover:border-2 hover:border-coastal-dark-teal rounded-lg transition-colors"
+              >
+                New
+              </button>
+            )}
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="p-2 rounded-lg hover:bg-coastal-light-grey transition-colors"
@@ -393,70 +485,76 @@ export function CourseWorkspace({
           </div>
         </div>
 
-        {isExpanded && (
-          <>
-            <div className="flex items-center gap-4 mb-4">
+        {isExpanded && showTypeSelector && !editingItem && (
+          <div className="mb-4">
+            <div className="flex gap-4 mb-4">
               <button
-                onClick={() => setActiveTab("mindmap")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors
-                  ${
-                    activeTab === "mindmap"
-                      ? "bg-coastal-dark-teal text-white"
-                      : "text-coastal-dark-grey hover:bg-coastal-light-grey border-2 border-coastal-dark-grey hover:border-coastal-dark-teal hover:text-coastal-dark-teal"
-                  }`}
+                onClick={() => {
+                  setActiveTab("mindmap");
+                  setShowTypeSelector(false);
+                  setNoteContent(defaultNoteContent);
+                  setTmpElement([]);
+                  setTmpAppState({
+                    viewBackgroundColor: "#ffffff",
+                    currentItemFontFamily: 1,
+                    zoom: { value: 1 },
+                    scrollX: 0,
+                    scrollY: 0,
+                  });
+                }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-coastal-dark-grey hover:border-coastal-dark-teal hover:bg-coastal-light-grey transition-colors"
               >
-                <MdDraw size={20} />
-                Mind Map
+                <MdDraw size={24} />
+                <span>Create Mind Map</span>
               </button>
               <button
-                onClick={() => setActiveTab("notes")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors
-                  ${
-                    activeTab === "notes"
-                      ? "bg-coastal-dark-teal text-white"
-                      : "text-coastal-dark-grey hover:bg-coastal-light-grey border-2 border-coastal-dark-grey hover:border-coastal-dark-teal hover:text-coastal-dark-teal"
-                  }`}
+                onClick={() => {
+                  setActiveTab("notes");
+                  setShowTypeSelector(false);
+                  setNoteContent(defaultNoteContent);
+                }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-coastal-dark-grey hover:border-coastal-dark-teal hover:bg-coastal-light-grey transition-colors"
               >
-                <MdNote size={20} />
-                Notes
+                <MdNote size={24} />
+                <span>Create Notes</span>
               </button>
             </div>
+          </div>
+        )}
 
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={currentTitle}
-                onChange={(e) => setCurrentTitle(e.target.value)}
-                placeholder={editingItem ? "Edit title..." : "Enter title..."}
-                className="flex-1 px-4 py-2 rounded-lg border-2 border-coastal-sand
-                         focus:border-coastal-dark-teal focus:ring-2 focus:ring-coastal-dark-teal/20"
-              />
-              <button
-                onClick={handleSave}
-                className="flex items-center gap-2 px-4 py-2 bg-coastal-dark-teal text-white
-                         rounded-lg hover:bg-coastal-light-teal transition-colors"
-              >
-                <IoSave size={20} />
-                {editingItem ? "Update" : "Save"}
-              </button>
-              {editingItem && (
-                <button
-                  onClick={() => {
-                    setEditingItem(null);
-                    setCurrentTitle("");
-                    setNoteContent("");
-                  }}
-                  className="px-4 py-2 border-2 border-coastal-sand text-coastal-dark-grey
-                           rounded-lg hover:bg-coastal-light-grey transition-colors"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </>
+        {isExpanded && (editingItem || activeTab) && (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={currentTitle}
+              onChange={(e) => setCurrentTitle(e.target.value)}
+              placeholder={editingItem ? "Edit title..." : "Enter title..."}
+              className="flex-1 px-4 py-2 rounded-lg border-2 border-coastal-sand focus:border-coastal-dark-teal focus:ring-2 focus:ring-coastal-dark-teal/20"
+            />
+            <button
+              onClick={handleSave}
+              className="flex items-center gap-2 px-4 py-2 bg-coastal-dark-teal text-white rounded-lg hover:bg-coastal-light-teal transition-colors"
+            >
+              <IoSave size={20} />
+              {editingItem ? "Update" : "Save"}
+            </button>
+            <button
+              onClick={() => {
+                setEditingItem(null);
+                setCurrentTitle("");
+                setNoteContent(defaultNoteContent);
+                setActiveTab(null);
+                setShowTypeSelector(false);
+              }}
+              className="px-4 py-2 border-2 border-coastal-sand text-coastal-dark-grey rounded-lg hover:bg-coastal-light-grey transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
         )}
       </div>
 
+      {/* Main content area */}
       {isExpanded && (
         <div className="grid grid-cols-4 h-[600px]">
           {/* Sidebar */}
@@ -478,7 +576,7 @@ export function CourseWorkspace({
                     transition-colors group`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-coastal-dark-grey ">
+                    <span className="font-medium text-coastal-dark-grey">
                       {item.title}
                     </span>
                     <div className="opacity-0 group-hover:opacity-100 flex items-center gap-2">
@@ -493,9 +591,9 @@ export function CourseWorkspace({
                         <IoMail size={16} />
                       </button>
                       <button
-                        onClick={(e) => {
+                        onClick={(e: React.MouseEvent) => {
                           e.stopPropagation();
-                          handleDelete(item.id);
+                          handleDelete(e, item.id);
                         }}
                         className="text-red-500 hover:text-red-700 transition-all"
                         title="Delete item"
@@ -515,25 +613,52 @@ export function CourseWorkspace({
 
           {/* Main Workspace */}
           <div className="col-span-3 h-full">
-            {activeTab === "mindmap" ? (
-              <ExcalidrawWorkspace
-                key={editingItem?.id || 'new'}
-                content={editingItem?.type === 'MINDMAP' 
-                  ? (editingItem.content as ExcalidrawContent)
-                  : undefined}
-                onSave={handleExcalidrawSave}
-                isEditing={!!editingItem}
-                setTmpAppState={setTmpAppState}
-                setTmpElement={setTmpElement}
-              />
+            {editingItem ? (
+              // Show editor for existing item
+              editingItem.type === "MINDMAP" ? (
+                <ExcalidrawWorkspace
+                  key={editingItem.id}
+                  content={editingItem.content as ExcalidrawContent}
+                  onSave={handleExcalidrawSave}
+                  isEditing={true}
+                  setTmpAppState={setTmpAppState}
+                  setTmpElement={setTmpElement}
+                />
+              ) : (
+                <RichTextEditor value={noteContent} onChange={setNoteContent} />
+              )
+            ) : showTypeSelector ? (
+              // Show message when type selector is open
+              <div className="flex items-center justify-center h-full text-coastal-dark-grey">
+                <p className="text-lg">
+                  Select the type of workspace you want to create
+                </p>
+              </div>
+            ) : activeTab !== null ? (
+              // Show new editor based on selected type
+              activeTab === "mindmap" ? (
+                <ExcalidrawWorkspace
+                  key="new"
+                  content={undefined}
+                  onSave={handleExcalidrawSave}
+                  isEditing={false}
+                  setTmpAppState={setTmpAppState}
+                  setTmpElement={setTmpElement}
+                />
+              ) : (
+                <RichTextEditor
+                  value={defaultNoteContent}
+                  onChange={setNoteContent}
+                />
+              )
             ) : (
-              <textarea
-                value={noteContent}
-                onChange={(e) => setNoteContent(e.target.value)}
-                placeholder="Start typing your notes..."
-                className="w-full h-full p-4 resize-none border-none focus:ring-0
-                         text-coastal-dark-grey"
-              />
+              // Show empty state message
+              <div className="flex flex-col items-center justify-center h-full text-coastal-dark-grey">
+                <p className="text-lg mb-2">Your workspace is empty</p>
+                <p className="text-sm">
+                  Click &quot;New&quot; to start creating
+                </p>
+              </div>
             )}
           </div>
         </div>
