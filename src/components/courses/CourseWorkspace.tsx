@@ -586,7 +586,7 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
           </div>
 
           {/* Main Workspace */}
-          <div className="col-span-3 h-full">
+          <div className="col-span-3 h-full overflow-y-auto">
             {editingItem ? (
               // Show editor for existing item
               editingItem.type === "MINDMAP" ? (
