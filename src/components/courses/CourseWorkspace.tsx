@@ -15,6 +15,7 @@ import {
 import { showToast } from "@/utils/toast";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { Descendant } from "slate";
+import toast from "react-hot-toast";
 
 type TabType = "mindmap" | "notes" | null;
 type WorkspaceType = "MINDMAP" | "NOTES";
@@ -275,50 +276,47 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
 
   const handleSendEmail = async (item: WorkspaceItem) => {
     try {
-      showToast.info("Processing", "Preparing your workspace item...");
+      const toastId = showToast.processing(
+        "Processing",
+        "Preparing to send email..."
+      );
+
       let fileBlob: Blob;
 
       if (item.type === "MINDMAP") {
-        const mindmapContent = item.content as ExcalidrawContent;
+        // Handle mind map - convert to PNG
+        const excalidrawContent = item.content as ExcalidrawContent;
         fileBlob = await exportToBlob({
-          elements: mindmapContent.elements,
-          mimeType: "image/png",
+          elements: excalidrawContent.elements || [],
           appState: {
-            ...mindmapContent.appState,
+            ...excalidrawContent.appState,
             exportWithDarkMode: false,
-            exportBackground: true,
-            viewBackgroundColor: "#ffffff",
-            exportScale: 2,
-            exportPadding: 40,
           },
           files: null,
-          getDimensions: (width: number, height: number) => ({
-            width: Math.max(width, 1920),
-            height: Math.max(height, 1080),
-            scale: 2,
-          }),
+          mimeType: "image/png",
         });
       } else {
-        const noteHtml = `
-          <html>
-            <body style="font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto;">
-              <h1 style="color: #4EA292;">${item.title}</h1>
-              <div style="white-space: pre-wrap; line-height: 1.6;">
-                ${item.content}
-              </div>
-            </body>
-          </html>
-        `;
-        fileBlob = await convertHtmlToPdf(noteHtml);
+        // For notes, convert Slate content to PDF
+        const notesContent = item.content as Descendant[];
+        const plainText = notesContent
+          .map((node) => {
+            if ("children" in node) {
+              return node.children
+                .map((child) => ("text" in child ? child.text : ""))
+                .join("");
+            }
+            return "";
+          })
+          .join("\n\n");
+
+        // Convert text to PDF blob
+        const pdfDoc = new jsPDF();
+        pdfDoc.text(plainText, 10, 10);
+        fileBlob = pdfDoc.output("blob");
       }
 
       const formData = new FormData();
-      formData.append(
-        "file",
-        new Blob([fileBlob], {
-          type: item.type === "MINDMAP" ? "image/png" : "application/pdf",
-        })
-      );
+      formData.append("file", fileBlob);
       formData.append("title", item.title);
       formData.append("email", userEmail);
       formData.append(
@@ -332,22 +330,15 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to send email");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to send email");
       }
 
-      showToast.success(
-        "Sent!",
-        "Your workspace item has been sent to your email"
-      );
+      toast.dismiss(toastId);
+      showToast.success("Sent", "Email has been sent successfully");
     } catch (error) {
       console.error("Failed to send email:", error);
-      showToast.error(
-        "Send Failed",
-        error instanceof Error
-          ? error.message
-          : "Unable to send your workspace item"
-      );
+      showToast.error("Error", "Failed to send email");
     }
   };
 
@@ -641,7 +632,9 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-coastal-dark-grey">
                 <p className="text-lg mb-2">Your workspace is empty</p>
-                <p className="text-sm">Click &quot;New&quot; to start creating</p>
+                <p className="text-sm">
+                  Click &quot;New&quot; to start creating
+                </p>
               </div>
             )}
           </div>

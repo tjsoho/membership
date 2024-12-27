@@ -18,6 +18,12 @@ export const showToast = {
     })
   },
   
+  processing: (title: string, message: string): string => {
+    return toast.loading(title + ' - ' + message, {
+      duration: Infinity,
+    })
+  },
+  
   delete: (title: string, message: string, onConfirm: () => void): string => {
     const toastId = toast(
       (t: Toast) => title + ' - ' + message + '\nClick to confirm deletion', 
@@ -42,4 +48,4 @@ export const showToast = {
 
     return toastId;
   }
-} 
+}
