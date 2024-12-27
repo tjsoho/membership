@@ -235,48 +235,30 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
 
   const handleEdit = (item: WorkspaceItem) => {
     console.log("Editing item:", item);
-    console.log("Raw content:", item.content);
 
     setActiveTab(item.type === "MINDMAP" ? "mindmap" : "notes");
     setCurrentTitle(item.title);
+    setEditingItem(item);
 
     if (item.type === "MINDMAP") {
-      try {
-        const savedContent = item.content as ExcalidrawContent;
-        console.log("Parsed Excalidraw content:", savedContent);
-
-        if (!savedContent || !savedContent.elements) {
-          console.error("Invalid mindmap content structure");
-          return;
-        }
-
-        // Initialize with empty arrays if needed
-        const content: ExcalidrawContent = {
-          elements: Array.isArray(savedContent.elements)
-            ? savedContent.elements
-            : [],
-          appState: {
-            viewBackgroundColor:
-              savedContent.appState?.viewBackgroundColor || "#ffffff",
-            currentItemFontFamily:
-              savedContent.appState?.currentItemFontFamily || 1,
-            zoom: savedContent.appState?.zoom || { value: 1 },
-            scrollX: savedContent.appState?.scrollX || 0,
-            scrollY: savedContent.appState?.scrollY || 0,
-          },
-        };
-
-        console.log("Initialized content:", content);
-        setEditingItem(item);
-      } catch (error) {
-        console.error("Error parsing Excalidraw content:", error);
-      }
+      const mindMapContent = item.content as ExcalidrawContent;
+      setTmpElement(mindMapContent.elements || []);
+      setTmpAppState({
+        viewBackgroundColor:
+          mindMapContent.appState?.viewBackgroundColor || "#ffffff",
+        currentItemFontFamily:
+          mindMapContent.appState?.currentItemFontFamily || 1,
+        zoom: mindMapContent.appState?.zoom || { value: 1 },
+        scrollX: mindMapContent.appState?.scrollX || 0,
+        scrollY: mindMapContent.appState?.scrollY || 0,
+      });
     } else {
-      setEditingItem(item);
+      // Handle notes content
       if (Array.isArray(item.content)) {
+        // If the content is already in the correct Slate format
         setNoteContent(item.content as Descendant[]);
       } else if (typeof item.content === "string") {
-        // Handle legacy string content or convert from string if needed
+        // Handle legacy string content if needed
         setNoteContent([
           {
             type: "paragraph",
@@ -284,7 +266,8 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
           },
         ]);
       } else {
-        // Fallback to default content
+        // Fallback to default content if something's wrong
+        console.warn("Invalid notes content format:", item.content);
         setNoteContent(defaultNoteContent);
       }
     }
@@ -625,10 +608,13 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
                   setTmpElement={setTmpElement}
                 />
               ) : (
-                <RichTextEditor value={noteContent} onChange={setNoteContent} />
+                <RichTextEditor
+                  key={editingItem.id}
+                  value={noteContent}
+                  onChange={setNoteContent}
+                />
               )
             ) : showTypeSelector ? (
-              // Show message when type selector is open
               <div className="flex items-center justify-center h-full text-coastal-dark-grey">
                 <p className="text-lg">
                   Select the type of workspace you want to create
@@ -647,17 +633,15 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
                 />
               ) : (
                 <RichTextEditor
+                  key="new"
                   value={defaultNoteContent}
                   onChange={setNoteContent}
                 />
               )
             ) : (
-              // Show empty state message
               <div className="flex flex-col items-center justify-center h-full text-coastal-dark-grey">
                 <p className="text-lg mb-2">Your workspace is empty</p>
-                <p className="text-sm">
-                  Click &quot;New&quot; to start creating
-                </p>
+                <p className="text-sm">Click &quot;New&quot; to start creating</p>
               </div>
             )}
           </div>
