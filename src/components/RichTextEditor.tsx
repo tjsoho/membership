@@ -62,7 +62,7 @@ type CustomEditor = BaseEditor & ReactEditor;
 
 declare module "slate" {
   interface CustomTypes {
-    Editor: CustomEditor;
+    // Editor: CustomEditor;
     Element: CustomElement;
     Text: CustomText;
   }
@@ -231,6 +231,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
    *                            RENDER
    ******************************************************************************/
   return (
+    // @ts-ignore: Slate component works with initialValue prop despite type error
     <Slate
       editor={editor}
       initialValue={value || initialValue}
@@ -495,9 +496,6 @@ const Toolbar = () => {
       </div>
 
       {/* List Controls */}
-      
-
-      
     </div>
   );
 };
