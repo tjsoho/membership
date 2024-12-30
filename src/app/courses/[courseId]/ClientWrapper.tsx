@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { PurchaseModal } from "@/components/PurchaseModal";
 import { MarketingCourseContent } from "@/components/courses/MarketingCourseContent";
-import { PerfectHomePage } from "@/components/courses/PerfectHomePage";
+import { PerfectHomePage } from "@/components/courses/SaveTimeMakeMoney";
 import { AmazingTest } from "@/components/courses/AmazingTest";
 
 interface ClientWrapperProps {

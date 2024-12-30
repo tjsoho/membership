@@ -378,43 +378,38 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
     });
   };
 
-  const handleDelete = useCallback(
-    (e: React.MouseEvent, itemId: string) => {
-      e.stopPropagation(); // Prevent the parent button's onClick from firing
+  const handleDelete = useCallback((e: React.MouseEvent, itemId: string) => {
+    e.stopPropagation();
 
-      showToast.delete(
-        "Confirm Delete",
-        "Are you sure you want to delete this item?",
-        async () => {
-          try {
-            const response = await fetch(`/api/workspace?id=${itemId}`, {
-              method: "DELETE",
-            });
+    showToast.delete(
+      "Confirm Delete",
+      "Are you sure you want to delete this item?",
+      async () => {
+        try {
+          const response = await fetch(`/api/workspace?id=${itemId}`, {
+            method: "DELETE",
+          });
 
-            if (!response.ok) throw new Error("Failed to delete item");
+          if (!response.ok) throw new Error("Failed to delete item");
 
-            // Update the items list
-            setWorkspaceItems((prevItems) =>
-              prevItems.filter((item) => item.id !== itemId)
-            );
+          setWorkspaceItems((prevItems) =>
+            prevItems.filter((item) => item.id !== itemId)
+          );
 
-            // Clear the editing state if we're deleting the currently edited item
-            if (editingItem?.id === itemId) {
-              setEditingItem(null);
-              setCurrentTitle("");
-              setNoteContent(defaultNoteContent);
-            }
-
-            showToast.success("Deleted", "Item has been successfully deleted");
-          } catch (error) {
-            console.error("Failed to delete item:", error);
-            showToast.error("Error", "Failed to delete item");
+          if (editingItem?.id === itemId) {
+            setEditingItem(null);
+            setCurrentTitle("");
+            setNoteContent(defaultNoteContent);
           }
+
+          showToast.success("Deleted", "Item has been successfully deleted");
+        } catch (error) {
+          console.error("Failed to delete item:", error);
+          showToast.error("Error", "Failed to delete item");
         }
-      );
-    },
-    [editingItem]
-  );
+      }
+    );
+  }, []);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-coastal-sand overflow-hidden">

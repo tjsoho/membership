@@ -63,3 +63,41 @@ export async function DELETE(
     )
   }
 }
+
+export async function PUT(
+  request: Request,
+  { params }: { params: { courseId: string } }
+) {
+  try {
+    const session = await getAuthSession()
+    
+    if (!session?.user?.email || session.user.email !== process.env.ADMIN_EMAIL) {
+      return NextResponse.json(
+        { error: 'Unauthorized access' }, 
+        { status: 401 }
+      )
+    }
+
+    const data = await request.json()
+
+    const updatedCourse = await prisma.course.update({
+      where: { id: params.courseId },
+      data: {
+        title: data.title,
+        description: data.description,
+        image: data.image,
+        price: data.price,
+        stripeProductId: data.stripeProductId,
+      }
+    })
+
+    return NextResponse.json(updatedCourse)
+
+  } catch (error: any) {
+    console.error('Update error:', error)
+    return NextResponse.json(
+      { error: 'Failed to update course' }, 
+      { status: 500 }
+    )
+  }
+}
