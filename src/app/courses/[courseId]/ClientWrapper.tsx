@@ -16,7 +16,7 @@ interface ClientWrapperProps {
 
 const courseComponents = {
   "marketing-course": MarketingCourseContent,
-  "perfect-home-page": PerfectHomePage,
+  "save-time-make-money": PerfectHomePage,
   "amazing-test": AmazingTest,
 };
 

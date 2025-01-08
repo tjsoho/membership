@@ -83,6 +83,7 @@ export async function PUT(
     const updatedCourse = await prisma.course.update({
       where: { id: params.courseId },
       data: {
+        id: data.id,
         title: data.title,
         description: data.description,
         image: data.image,
