@@ -14,7 +14,7 @@
     "@excalidraw/excalidraw": "^0.17.6",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^6.2.0",
     "@sendgrid/mail": "^8.1.0",
     "@stripe/react-stripe-js": "^3.0.0",
     "@stripe/stripe-js": "^2.4.0",
@@ -33,6 +33,9 @@
     "react-icons": "^5.4.0",
     "react-router-dom": "^7.0.1",
     "shadcn-ui": "^0.9.3",
+    "slate": "^0.112.0",
+    "slate-history": "^0.110.3",
+    "slate-react": "^0.112.0",
     "stripe": "^14.25.0",
     "zod": "^3.22.4"
   },

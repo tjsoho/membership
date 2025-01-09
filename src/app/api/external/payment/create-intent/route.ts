@@ -1,3 +1,4 @@
+import { prisma } from '@/lib/db/prisma';
 import { stripe } from '@/lib/stripe'
 // import { prisma } from '@/lib/db/prisma'
 // import { headers } from 'next/headers'
@@ -31,12 +32,33 @@ export async function POST(req: Request) {
   try {
     const { courseId, email, amount, currency, source } = await req.json()
 
+    const user = await prisma.user.findUnique({
+              where: { email },
+            });
+        
+    if (user) {
+      const purchase_user = await prisma.purchase.findFirst({
+        where:{
+          userId:user.id,
+        }
+      });
+
+      if(purchase_user){
+        return new NextResponse(
+          JSON.stringify({
+            message: 'You have already purchased this.',
+          }),
+          { status: 409, headers: corsHeaders(origin) }
+        );
+      }
+    }
+
     // Create payment intent with metadata
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency,
       metadata: {
-        source: 'EXTERNAL',
+        source: source || 'EXTERNAL',
         courseId,
         email
       }

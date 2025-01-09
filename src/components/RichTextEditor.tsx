@@ -231,9 +231,10 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
    *                            RENDER
    ******************************************************************************/
   return (
-    // @ts-ignore: Slate component works with initialValue prop despite type error
+    
     <Slate
       editor={editor}
+      // @ts-ignore: Slate component works with initialValue prop despite type error
       initialValue={value || initialValue}
       onChange={onChange}
     >
