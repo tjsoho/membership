@@ -20,6 +20,11 @@ export async function POST(req: Request) {
       )
     }
 
+    // Hash password
+    console.log('🔒 Hashing password...')
+    const hashedPassword = await bcrypt.hash(password, 12)
+    console.log('✅ Password hashed successfully')
+
     // Check if user already exists
     console.log('🔍 Checking if user exists...')
     const existingUser = await prisma.user.findUnique({
@@ -27,17 +32,33 @@ export async function POST(req: Request) {
     })
 
     if (existingUser) {
-      console.log('⚠️ Email already registered:', email)
-      return NextResponse.json(
-        { error: "Email already registered" },
-        { status: 400 }
-      )
+      if(existingUser.name === "Pending Registration"){
+        const user_update = await prisma.user.update({
+          where:{
+            email:email,
+          },
+          data:{
+            name:name,
+            password:hashedPassword,
+          }
+        })
+        return NextResponse.json({
+          user: {
+            id: user_update.id,
+            email: user_update.email,
+            name: user_update.name
+          }
+        })
+      }
+      else{
+        console.log('⚠️ Email already registered:', email)
+        return NextResponse.json(
+          { error: "Email already registered" },
+          { status: 400 }
+        )
+      }
+      
     }
-
-    // Hash password
-    console.log('🔒 Hashing password...')
-    const hashedPassword = await bcrypt.hash(password, 12)
-    console.log('✅ Password hashed successfully')
 
     // Create user
     console.log('👤 Creating new user...')
