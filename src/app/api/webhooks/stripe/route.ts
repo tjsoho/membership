@@ -6,11 +6,14 @@ import { headers } from 'next/headers'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/db/prisma'
 import { NextResponse } from 'next/server'
+import sgMail from '@sendgrid/mail'
 
 /******************************************************************************
                               WEBHOOK HANDLER
 ******************************************************************************/
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
 export async function POST(req: Request) {
   const body = await req.text()
@@ -94,7 +97,46 @@ export async function POST(req: Request) {
           console.log('🔑 Created course access:', access.id)
         }
 
-        // TODO: Send welcome email with login instructions
+        // Send receipt email
+        try {
+          // Send receipt to customer
+          await sgMail.send({
+            to: paymentIntent.metadata.email,
+            from: 'your-verified-sender@yourdomain.com',
+            subject: `Receipt for ${paymentIntent.metadata.courseTitle}`,
+            html: `
+              <h1>Thank you for your purchase!</h1>
+              <p>Course: ${paymentIntent.metadata.courseTitle}</p>
+              <p>Amount: $${paymentIntent.amount / 100}</p>
+              <br/>
+              <p>If you haven't done so already, please create your account using the email address you purchased the Masterclass with. You can do this by clicking the link below:</p>
+              <br/>
+              <a href="https://www.savvybusinesshub.com/">The Savvy Business Hub</a>
+              <p>Business Details: Ai Guy Business Solutions</p>
+              <p>Gold Coast, QLD, Australia</p>
+              <p>toby@ai-guy.co</p>
+              <p>ABN: 21 675 514 351 </p>
+            `
+          });
+
+          // Send notification to admin
+          await sgMail.send({
+            to: process.env.ADMIN_EMAIL!, // Add this to your .env file
+            from: 'your-verified-sender@yourdomain.com',
+            subject: `New Course Purchase: ${paymentIntent.metadata.courseTitle}`,
+            html: `
+              <h1>New Course Purchase!</h1>
+              <p>Course: ${paymentIntent.metadata.courseTitle}</p>
+              <p>Amount: $${paymentIntent.amount / 100}</p>
+              <p>Customer Email: ${paymentIntent.metadata.email}</p>
+              <p>Purchase Time: ${new Date().toLocaleString()}</p>
+            `
+          });
+
+          console.log('📧 Sent receipt email to customer and notification to admin');
+        } catch (error) {
+          console.error('Failed to send emails:', error);
+        }
       }
     }
 
