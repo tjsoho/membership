@@ -47,14 +47,14 @@ export function Navbar() {
           {session?.user?.email === 'tjcarroll1@me.com' && (
             <div className="flex items-center space-x-6">
               <Link 
-                href="/courses" 
+                href="/admin" 
                 className={`text-sm font-medium ${
                   pathname.startsWith('/courses') 
                     ? 'text-coastal-teal' 
                     : 'text-coastal-ocean/70 hover:text-coastal-ocean'
                 }`}
               >
-                Courses
+                Admin
               </Link>
               <Link 
                 href="/admin/courses" 
@@ -64,7 +64,7 @@ export function Navbar() {
                     : 'text-coastal-ocean/70 hover:text-coastal-ocean'
                 }`}
               >
-                Admin
+                Courses
               </Link>
             </div>
           )}

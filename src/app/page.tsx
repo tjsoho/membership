@@ -1,57 +1,65 @@
 /******************************************************************************
                                 IMPORTS
 ******************************************************************************/
-'use client'
+"use client";
 
-import Image from "next/image"
-import { useState, useEffect } from 'react'
-import { LoginForm } from '@/components/auth/LoginForm'
-import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm'
-import { RegisterForm } from '@/components/auth/RegisterForm'
-import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm'
-import { useSearchParams } from 'next/navigation'
+import Image from "next/image";
+import { useState, useEffect } from "react";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
+import { RegisterForm } from "@/components/auth/RegisterForm";
+import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 /******************************************************************************
                               TYPES & CONSTANTS
 ******************************************************************************/
-type AuthMode = 'welcome' | 'login' | 'register' | 'forgot-password' | 'reset-password'
+type AuthMode =
+  | "welcome"
+  | "login"
+  | "register"
+  | "forgot-password"
+  | "reset-password";
 
 const codingNotes = [
   {
     title: "Authentication Flow",
-    notes: [/* ... */]
+    notes: [
+      /* ... */
+    ],
   },
   // ... other notes
-]
+];
 
 const titles = {
-  'welcome': 'Welcome to Your Learning Journey',
-  'login': 'Sign in to your account',
-  'register': 'Create your account',
-  'forgot-password': 'Reset your password',
-  'reset-password': 'Set new password'
-}
+  welcome: "Welcome to the Savvy Business Hub",
+  login: "Sign in to your account",
+  register: "Create your account",
+  "forgot-password": "Reset your password",
+  "reset-password": "Set new password",
+};
 
 /******************************************************************************
                               MAIN COMPONENT
 ******************************************************************************/
 export default function AuthPage() {
-  const [mounted, setMounted] = useState(false)
-  const [mode, setMode] = useState<AuthMode>('welcome')
-  const [showNotes, setShowNotes] = useState(false)
-  const searchParams = useSearchParams()
-  const resetToken = searchParams.get('token')
+  const [mounted, setMounted] = useState(false);
+  const [mode, setMode] = useState<AuthMode>("welcome");
+  const [showNotes, setShowNotes] = useState(false);
+  const searchParams = useSearchParams();
+  const resetToken = searchParams.get("token");
 
   // Set initial mode based on token presence
   useEffect(() => {
     if (resetToken) {
-      setMode('reset-password')
+      setMode("reset-password");
     }
-    setMounted(true)
-  }, [resetToken])
+    setMounted(true);
+  }, [resetToken]);
 
   if (!mounted) {
-    return null
+    return null;
   }
 
   return (
@@ -77,59 +85,85 @@ export default function AuthPage() {
             </h1>
 
             <div className="w-full max-w-sm mx-auto">
-              {mode === 'welcome' && (
+              {mode === "welcome" && (
                 <div className="space-y-6">
                   <p className="text-lg text-coastal-dark-grey">
-                    Start your learning journey today. Access premium courses and grow your skills at your own pace.
+                    A place for you to learn and grow your business with ease.
                   </p>
                   <div className="space-y-4">
                     <button
-                      onClick={() => setMode('login')}
+                      onClick={() => setMode("register")}
                       className="w-full rounded-lg bg-coastal-dark-teal px-6 py-3 text-white 
                              hover:bg-coastal-light-teal transition-colors duration-200
                              font-semibold"
                     >
-                      Sign in to your account
+                      Create New Account
                     </button>
                     <button
-                      onClick={() => setMode('register')}
+                      onClick={() => setMode("login")}
                       className="w-full rounded-lg border-2 border-coastal-dark-teal px-6 py-3 
                              text-coastal-dark-teal hover:bg-coastal-dark-teal hover:text-white 
                              transition-colors duration-200 font-semibold"
                     >
-                      Create new account
+                      Sign in to your account
                     </button>
                   </div>
                   <p className="text-sm text-center text-coastal-dark-grey">
-                    By continuing, you agree to our Terms of Service and Privacy Policy.
+                    By continuing, you agree to our{" "}
+                    <Link
+                      href="/terms"
+                      className="text-coastal-dark-teal hover:text-coastal-light-teal transition-colors"
+                      target="_blank"
+                    >
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      href="/privacy"
+                      className="text-coastal-dark-teal hover:text-coastal-light-teal transition-colors"
+                      target="_blank"
+                    >
+                      Privacy Policy
+                    </Link>
+                    .
                   </p>
                 </div>
               )}
 
-              {mode === 'login' && <LoginForm onForgotPassword={() => setMode('forgot-password')} />}
-              {mode === 'register' && <RegisterForm onBackToLogin={() => setMode('login')} />}
-              {mode === 'forgot-password' && <ForgotPasswordForm onBackToLogin={() => setMode('login')} />}
-              {mode === 'reset-password' && resetToken && <ResetPasswordForm token={resetToken} />}
+              {mode === "login" && (
+                <LoginForm
+                  onForgotPassword={() => setMode("forgot-password")}
+                />
+              )}
+              {mode === "register" && (
+                <RegisterForm onBackToLogin={() => setMode("login")} />
+              )}
+              {mode === "forgot-password" && (
+                <ForgotPasswordForm onBackToLogin={() => setMode("login")} />
+              )}
+              {mode === "reset-password" && resetToken && (
+                <ResetPasswordForm token={resetToken} />
+              )}
             </div>
 
-            {mode !== 'welcome' && mode !== 'reset-password' && (
+            {mode !== "welcome" && mode !== "reset-password" && (
               <div className="pt-4 text-center">
-                {mode === 'login' ? (
+                {mode === "login" ? (
                   <p className="text-sm text-coastal-dark-grey">
-                    Don&apos;t have an account?{' '}
+                    Don&apos;t have an account?{" "}
                     <button
-                      onClick={() => setMode('register')}
+                      onClick={() => setMode("register")}
                       className="text-coastal-dark-teal hover:text-coastal-light-teal 
                                transition-colors font-semibold"
                     >
                       Register
                     </button>
                   </p>
-                ) : mode === 'register' ? (
+                ) : mode === "register" ? (
                   <p className="text-sm text-coastal-dark-grey">
-                    Already have an account?{' '}
+                    Already have an account?{" "}
                     <button
-                      onClick={() => setMode('login')}
+                      onClick={() => setMode("login")}
                       className="text-coastal-dark-teal hover:text-coastal-light-teal 
                                transition-colors font-semibold"
                     >
@@ -143,5 +177,5 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

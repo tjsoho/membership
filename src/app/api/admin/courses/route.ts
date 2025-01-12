@@ -11,6 +11,17 @@ export async function GET(request: Request) {
 
   try {
     const courses = await prisma.course.findMany({
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        image: true,
+        price: true,
+        stripeProductId: true,
+        highlights: true,
+        whatYouWillLearn: true,
+        createdAt: true,
+      },
       orderBy: {
         createdAt: 'desc'
       }
@@ -40,11 +51,17 @@ export async function POST(request: Request) {
         image: data.image,
         price: data.price,
         stripeProductId: data.stripeProductId,
+        highlights: data.highlights || [],
+        whatYouWillLearn: data.whatYouWillLearn || []
       }
     })
 
     return NextResponse.json({ success: true, course })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('Create error:', error)
+    return NextResponse.json({ 
+      error: error.message || 'Failed to create course',
+      details: error
+    }, { status: 500 })
   }
 } 

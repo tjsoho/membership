@@ -1,61 +1,73 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { showToast } from "@/utils/toast";
 
 interface RegisterFormProps {
-  onBackToLogin: () => void
+  onBackToLogin: () => void;
 }
 
 export function RegisterForm({ onBackToLogin }: RegisterFormProps) {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    console.log('👋 User clicked submit button')
-    
-    setIsLoading(true)
-    setError(null)
+    e.preventDefault();
+    console.log("👋 User clicked submit button");
 
-    const formData = new FormData(e.currentTarget)
+    setIsLoading(true);
+    setError(null);
+
+    const formData = new FormData(e.currentTarget);
     const data = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      password: formData.get('password'),
-    }
-    
-    console.log('📧 User is trying to register with email:', data.email)
+      name: formData.get("name"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+    };
+
+    console.log("📧 User is trying to register with email:", data.email);
 
     try {
-      console.log('🚀 Sending data to server...')
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      console.log("🚀 Sending data to server...");
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      })
+      });
 
       if (!res.ok) {
-        console.log('❌ Something went wrong:', res.status)
-        const data = await res.json()
-        throw new Error(data.error || 'Failed to register')
+        console.log("❌ Something went wrong:", res.status);
+        const data = await res.json();
+        throw new Error(data.error || "Failed to register");
       }
 
-      console.log('✅ Registration successful!')
-      onBackToLogin() // Instead of redirecting, switch back to login
+      console.log("✅ Registration successful!");
+      showToast.success(
+        "Account Created",
+        "Registration successful! Please log in."
+      );
+      onBackToLogin();
     } catch (error) {
-      console.log('💥 Error caught:', error)
-      setError(error instanceof Error ? error.message : 'Something went wrong')
+      console.log("💥 Error caught:", error);
+      showToast.error(
+        "Registration Failed",
+        error instanceof Error ? error.message : "Something went wrong"
+      );
+      setError(error instanceof Error ? error.message : "Something went wrong");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-coastal-dark-grey">
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-coastal-dark-grey"
+        >
           Name
         </label>
         <input
@@ -70,7 +82,10 @@ export function RegisterForm({ onBackToLogin }: RegisterFormProps) {
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-coastal-dark-grey">
+        <label
+          htmlFor="email"
+          className="block text-sm font-medium text-coastal-dark-grey"
+        >
           Email address
         </label>
         <input
@@ -85,7 +100,10 @@ export function RegisterForm({ onBackToLogin }: RegisterFormProps) {
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-coastal-dark-grey">
+        <label
+          htmlFor="password"
+          className="block text-sm font-medium text-coastal-dark-grey"
+        >
           Password
         </label>
         <input
@@ -100,11 +118,7 @@ export function RegisterForm({ onBackToLogin }: RegisterFormProps) {
         />
       </div>
 
-      {error && (
-        <div className="text-red-500 text-sm">
-          {error}
-        </div>
-      )}
+      {error && <div className="text-red-500 text-sm">{error}</div>}
 
       <button
         type="submit"
@@ -113,18 +127,18 @@ export function RegisterForm({ onBackToLogin }: RegisterFormProps) {
                  hover:bg-coastal-light-teal transition-colors duration-200
                  disabled:bg-coastal-light-teal/50"
       >
-        {isLoading ? 'Creating account...' : 'Create account'}
+        {isLoading ? "Creating account..." : "Create account"}
       </button>
 
-      <div className="text-sm text-center">
-        <button 
+      {/* <div className="text-sm text-center">
+        <button
           type="button"
           onClick={onBackToLogin}
           className="text-coastal-dark-teal hover:text-coastal-light-teal transition-colors"
         >
           Already have an account? Sign in
         </button>
-      </div>
+      </div> */}
     </form>
-  )
-} 
+  );
+}

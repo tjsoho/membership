@@ -68,22 +68,20 @@ export async function PUT(
   request: Request,
   { params }: { params: { courseId: string } }
 ) {
+  const session = await getAuthSession()
+  
+  if (!session?.user?.email || session.user.email !== process.env.ADMIN_EMAIL) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
-    const session = await getAuthSession()
-    
-    if (!session?.user?.email || session.user.email !== process.env.ADMIN_EMAIL) {
-      return NextResponse.json(
-        { error: 'Unauthorized access' }, 
-        { status: 401 }
-      )
-    }
-
     const data = await request.json()
-
-    const updatedCourse = await prisma.course.update({
-      where: { id: params.courseId },
+    
+    const course = await prisma.course.update({
+      where: {
+        id: params.courseId
+      },
       data: {
-        id: data.id,
         title: data.title,
         description: data.description,
         image: data.image,
@@ -92,13 +90,12 @@ export async function PUT(
       }
     })
 
-    return NextResponse.json(updatedCourse)
-
+    return NextResponse.json({ success: true, course })
   } catch (error: any) {
     console.error('Update error:', error)
-    return NextResponse.json(
-      { error: 'Failed to update course' }, 
-      { status: 500 }
-    )
+    return NextResponse.json({ 
+      error: error.message || 'Failed to update course',
+      details: error
+    }, { status: 500 })
   }
 }

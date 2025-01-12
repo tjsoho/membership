@@ -50,6 +50,8 @@ model Course {
   image           String
   price           Float
   stripeProductId String?
+  highlights      String[]        @default([])
+  whatYouWillLearn String[]       @default([])
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   courseAccess    CourseAccess[]
