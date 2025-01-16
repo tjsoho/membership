@@ -17,6 +17,8 @@ interface CourseWithPurchases {
   description: string;
   image: string;
   price: number;
+  highlights: string[];
+  whatYouWillLearn: string[];
   purchases: {
     userId: string;
   }[];
@@ -51,6 +53,8 @@ export default async function DashboardPage() {
       description: true,
       image: true,
       price: true,
+      highlights: true,
+      whatYouWillLearn: true,
       purchases: {
         where: {
           userId: session.user.id,
@@ -66,9 +70,9 @@ export default async function DashboardPage() {
     })
   );
 
-/******************************************************************************
+  /******************************************************************************
    *                            RENDER
-******************************************************************************/
+   ******************************************************************************/
   return (
     <>
       <Navbar />

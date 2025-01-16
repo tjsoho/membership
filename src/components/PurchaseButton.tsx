@@ -1,11 +1,7 @@
 "use client";
 import { useState } from "react";
 import { PaymentModal } from "./PaymentModal";
-import { stripe } from "@/lib/stripe";
 
-/******************************************************************************
-                                TYPES
-******************************************************************************/
 interface PurchaseButtonProps {
   courseId: string;
   courseTitle: string;
@@ -13,9 +9,6 @@ interface PurchaseButtonProps {
   isUnlocked: boolean;
 }
 
-/******************************************************************************
-                              COMPONENT
-******************************************************************************/
 export function PurchaseButton({
   courseId,
   courseTitle,
@@ -27,7 +20,8 @@ export function PurchaseButton({
   if (isUnlocked) {
     return (
       <button
-        className="bg-coastal-dark-teal text-white px-4 py-2 rounded-md"
+        className="w-full bg-coastal-light-teal text-white px-6 py-3 rounded-lg 
+                 opacity-50 cursor-not-allowed font-medium"
         disabled
       >
         Purchased
@@ -39,7 +33,9 @@ export function PurchaseButton({
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+        className="w-full bg-coastal-dark-teal text-white px-6 py-3 rounded-lg 
+                 hover:bg-coastal-light-teal transition-colors duration-200
+                 font-medium shadow-sm"
       >
         Purchase for ${price}
       </button>

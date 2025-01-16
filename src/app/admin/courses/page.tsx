@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation'
 import { CreateCourseForm } from '@/components/admin/CreateCourseForm'
 import { CoursesList } from '@/components/admin/CoursesList'
 import { prisma } from '@/lib/db/prisma'
-import { Navbar } from '@/components/Navbar'
 
 export default async function AdminCoursesPage() {
   const session = await getAuthSession()
@@ -38,7 +37,7 @@ export default async function AdminCoursesPage() {
 
   return (
     <div className="min-h-screen bg-coastal-shell">
-        <Navbar />
+        
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-coastal-sand">

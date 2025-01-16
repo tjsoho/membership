@@ -48,3 +48,7 @@ next-env.d.ts
 # Misc
 .DS_Store
 *.pem
+
+# Add this line
+public/uploads/*
+!public/uploads/.gitkeep

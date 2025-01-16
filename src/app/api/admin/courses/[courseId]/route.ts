@@ -87,6 +87,8 @@ export async function PUT(
         image: data.image,
         price: data.price,
         stripeProductId: data.stripeProductId,
+        highlights: data.highlights,
+        whatYouWillLearn: data.whatYouWillLearn
       }
     })
 
