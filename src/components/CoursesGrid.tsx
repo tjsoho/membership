@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PurchaseModal } from "./PurchaseModal";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 /******************************************************************************
                                 TYPES
@@ -31,10 +32,16 @@ interface CoursesGridProps {
 export function CoursesGrid({ courses }: CoursesGridProps) {
   const router = useRouter();
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleCourseClick = (course: Course) => {
+  const handleCourseClick = async (course: Course) => {
     if (course.isUnlocked) {
-      router.push(`/courses/${course.id}`);
+      setIsLoading(true);
+      try {
+        await router.push(`/courses/${course.id}`);
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       setSelectedCourse({
         ...course,
@@ -46,6 +53,17 @@ export function CoursesGrid({ courses }: CoursesGridProps) {
 
   return (
     <>
+      {isLoading && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="text-center">
+            <LoadingSpinner size="lg" />
+            <p className="mt-4 text-coastal-dark-teal font-medium">
+              Loading course...
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {courses.map((course) => (
           <div
@@ -74,7 +92,7 @@ export function CoursesGrid({ courses }: CoursesGridProps) {
                   ${course.price}
                 </span>
                 <span className="text-sm text-coastal-dark-grey">
-                  {course.isUnlocked ? "Enrolled" : "Click to learn more"}
+                  {course.isUnlocked ? "Enrolled ✅" : "Click to learn more 👆🏼"}
                 </span>
               </div>
             </div>

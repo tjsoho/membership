@@ -1,35 +1,35 @@
-import { redirect } from 'next/navigation'
-import { getAuthSession } from '@/lib/auth'
-import { prisma } from '@/lib/db/prisma'
-import { stripe } from '@/lib/stripe'
+import { redirect } from "next/navigation";
+import { getAuthSession } from "@/lib/auth";
+import { prisma } from "@/lib/db/prisma";
+import { stripe } from "@/lib/stripe";
 
-export default async function SuccessPage({ 
+export default async function SuccessPage({
   searchParams,
-  params 
-}: { 
-  searchParams: { payment_intent: string },
-  params: { courseId: string }
+  params,
+}: {
+  searchParams: { payment_intent: string };
+  params: { courseId: string };
 }) {
-  const session = await getAuthSession()
+  const session = await getAuthSession();
   if (!session?.user) {
-    redirect('/login')
+    redirect("/login");
   }
 
   const paymentIntent = await stripe.paymentIntents.retrieve(
     searchParams.payment_intent
-  )
+  );
 
-  if (paymentIntent.status === 'succeeded') {
+  if (paymentIntent.status === "succeeded") {
     await prisma.purchase.create({
       data: {
         userId: session.user.id,
         courseId: params.courseId,
-        paymentIntentId: paymentIntent.id
-      }
-    })
+        paymentIntentId: paymentIntent.id,
+      },
+    });
 
-    redirect(`/courses/${params.courseId}`)
+    redirect(`/courses/${params.courseId}`);
   }
 
-  redirect('/courses')
-} 
+  redirect("/courses");
+}

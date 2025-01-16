@@ -57,7 +57,7 @@ export function ClientWrapper({
             toast.success("Payment successful! Welcome to the course!");
             router.refresh();
           } else {
-            toast.error(`Verification failed: ${data.details || data.error}`);
+            // toast.error(`Verification failed: ${data.details || data.error}`);
             console.error("Verification failed:", {
               error: data.error,
               details: data.details,
