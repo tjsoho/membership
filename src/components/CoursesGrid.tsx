@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PurchaseModal } from "./PurchaseModal";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { LoadingWave } from "@/components/ui/LoadingWave";
 
 /******************************************************************************
                                 TYPES
@@ -57,10 +57,7 @@ export function CoursesGrid({ courses }: CoursesGridProps) {
       {isLoading && (
         <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="text-center">
-            <LoadingSpinner size="lg" />
-            <p className="mt-4 text-coastal-dark-teal font-medium">
-              Loading course...
-            </p>
+            <LoadingWave size="lg" />
           </div>
         </div>
       )}

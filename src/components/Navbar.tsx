@@ -1,79 +1,101 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { ProfileButton } from './ProfileButton'
-import { usePathname } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import Link from "next/link";
+import { ProfileButton } from "./ProfileButton";
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { motion } from "framer-motion";
+import { RiDashboardLine, RiAdminLine, RiBookLine } from "react-icons/ri";
 
 export function Navbar() {
-  const pathname = usePathname()
-  const { data: session } = useSession()
-  
-  // Don't show navbar on auth pages
-  if (pathname === '/login' || pathname === '/signup') {
-    return null
+  const pathname = usePathname();
+  const { data: session } = useSession();
+
+  if (pathname === "/login" || pathname === "/signup") {
+    return null;
   }
 
-  // Debug log to check session data
-  console.log('Session data:', session)
-
   return (
-    <nav className="bg-white border-b border-coastal-sand">
-      <div className="flex h-16 items-center px-4 container mx-auto">
-        <div className="flex items-center space-x-8">
-          {/* Logo and Home Link */}
-          <Link 
-            href="/dashboard" 
-            className="flex items-center space-x-2 text-coastal-ocean hover:text-coastal-oceanLight transition-colors"
-          >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-6 w-6" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-coastal-sand/20 shadow-sm"
+    >
+      <div className="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          {/* Left side - Logo and Navigation */}
+          <div className="flex items-center gap-8">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 text-coastal-dark-teal hover:text-coastal-light-teal transition-colors"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" 
-              />
-            </svg>
-            <span className="font-medium">Dashboard</span>
-          </Link>
+              <motion.div
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.5 }}
+                className="w-8 h-8 rounded-lg bg-gradient-to-br from-coastal-dark-teal to-coastal-light-teal flex items-center justify-center"
+              >
+                <RiDashboardLine className="w-5 h-5 text-white" />
+              </motion.div>
+              <span className="text-lg font-semibold bg-gradient-to-r from-coastal-dark-teal to-coastal-light-teal bg-clip-text text-transparent">
+                Savvy Biz Hub
+              </span>
+            </Link>
 
-          {/* Navigation Links - Only shown to admin */}
-          {session?.user?.email === 'tjcarroll1@me.com' && (
-            <div className="flex items-center space-x-6">
-              <Link 
-                href="/admin" 
-                className={`text-sm font-medium ${
-                  pathname.startsWith('/courses') 
-                    ? 'text-coastal-teal' 
-                    : 'text-coastal-ocean/70 hover:text-coastal-ocean'
-                }`}
-              >
-                Admin
-              </Link>
-              <Link 
-                href="/admin/courses" 
-                className={`text-sm font-medium ${
-                  pathname.startsWith('/admin') 
-                    ? 'text-coastal-teal' 
-                    : 'text-coastal-ocean/70 hover:text-coastal-ocean'
-                }`}
-              >
-                Courses
-              </Link>
-            </div>
-          )}
-        </div>
-        
-        <div className="ml-auto flex items-center space-x-4">
-          <ProfileButton />
+            {/* Navigation Links - Only shown to admin */}
+            {session?.user?.email === "tjcarroll1@me.com" && (
+              <div className="hidden md:flex items-center gap-6">
+                <motion.div whileHover={{ y: -2 }}>
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium
+                             transition-colors relative group"
+                  >
+                    <RiAdminLine className="w-4 h-4" />
+                    <span>Admin</span>
+                    <motion.div
+                      className="absolute inset-0 bg-coastal-light-grey/10 rounded-full -z-10"
+                      initial={false}
+                      animate={
+                        pathname.startsWith("/admin")
+                          ? { opacity: 1 }
+                          : { opacity: 0 }
+                      }
+                    />
+                  </Link>
+                </motion.div>
+
+                <motion.div whileHover={{ y: -2 }}>
+                  <Link
+                    href="/admin/courses"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium
+                             transition-colors relative group"
+                  >
+                    <RiBookLine className="w-4 h-4" />
+                    <span>Courses</span>
+                    <motion.div
+                      className="absolute inset-0 bg-coastal-light-grey/10 rounded-full -z-10"
+                      initial={false}
+                      animate={
+                        pathname.startsWith("/courses")
+                          ? { opacity: 1 }
+                          : { opacity: 0 }
+                      }
+                    />
+                  </Link>
+                </motion.div>
+              </div>
+            )}
+          </div>
+
+          {/* Right side - Profile */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="flex items-center"
+          >
+            <ProfileButton />
+          </motion.div>
         </div>
       </div>
-    </nav>
-  )
-} 
+    </motion.nav>
+  );
+}

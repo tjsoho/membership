@@ -18,7 +18,7 @@ interface LoadingSpinnerProps {
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
     size = 'lg',
     fullScreen = true,
-    message = 'Loading...'
+    message = 'Loading Course...'
 }) => {
 /******************************************************************************
  *                               STYLES
