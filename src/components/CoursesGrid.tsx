@@ -39,7 +39,8 @@ export function CoursesGrid({ courses }: CoursesGridProps) {
       setIsLoading(true);
       try {
         await router.push(`/courses/${course.id}`);
-      } finally {
+      } catch (error) {
+        console.error("Navigation error:", error);
         setIsLoading(false);
       }
     } else {
@@ -68,9 +69,14 @@ export function CoursesGrid({ courses }: CoursesGridProps) {
         {courses.map((course) => (
           <div
             key={course.id}
-            onClick={() => handleCourseClick(course)}
-            className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer 
-                     hover:shadow-xl transition-shadow duration-300"
+            onClick={() => !isLoading && handleCourseClick(course)}
+            className={`bg-white rounded-xl shadow-lg overflow-hidden 
+                     ${
+                       !isLoading
+                         ? "cursor-pointer hover:shadow-xl"
+                         : "cursor-wait"
+                     } 
+                     transition-shadow duration-300`}
           >
             <div className="relative aspect-video">
               <Image
