@@ -18,15 +18,16 @@ export function LoadingWave({ size = "md" }: LoadingWaveProps) {
     animate: {
       d: [
         "M0 37.5C20 25 40 37.5 60 50C80 62.5 100 25 120 37.5C140 50 160 37.5 180 25",
-        "M0 50C20 62.5 40 25 60 37.5C80 50 100 62.5 120 25C140 37.5 160 50 180 62.5",
-        "M0 37.5C20 50 40 62.5 60 25C80 37.5 100 50 120 62.5C140 25 160 37.5 180 50",
+        "M0 25C20 37.5 40 50 60 37.5C80 25 100 37.5 120 50C140 37.5 160 25 180 37.5",
+        "M0 37.5C20 50 40 37.5 60 25C80 37.5 100 50 120 37.5C140 25 160 37.5 180 50",
+        "M0 50C20 37.5 40 25 60 37.5C80 50 100 37.5 120 25C140 37.5 160 50 180 37.5",
       ],
       transition: {
-        duration: 3,
+        duration: 2,
         ease: "easeInOut",
         repeat: Infinity,
-        repeatType: "reverse",
-        times: [0, 0.5, 1],
+        repeatType: "loop" as const,
+        times: [0, 0.33, 0.66, 1],
       },
     },
   };
@@ -41,9 +42,9 @@ export function LoadingWave({ size = "md" }: LoadingWaveProps) {
       transition: {
         duration: 2,
         repeat: Infinity,
-        repeatType: "reverse",
+        repeatType: "reverse" as const,
         ease: "easeInOut",
-        delay: i * 0.1, // Sequential animation for letters
+        delay: i * 0.1,
       },
     }),
   };
