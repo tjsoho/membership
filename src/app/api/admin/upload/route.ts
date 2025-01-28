@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthSession } from '@/lib/auth';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: Request) {
   try {
@@ -31,27 +29,38 @@ export async function POST(request: Request) {
       );
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
     // Create unique filename
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
     const filename = `course-${uniqueSuffix}${file.name.substring(file.name.lastIndexOf('.'))}`;
-    
-    // Ensure uploads directory exists
-    const uploadsDir = join(process.cwd(), 'public/uploads');
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
+
+    // Initialize Supabase client
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('course-images')
+      .upload(filename, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      console.error('Supabase upload error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    
-    // Save file
-    const path = join(uploadsDir, filename);
-    await writeFile(path, buffer);
-    
-    console.log('File saved successfully:', path);
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('course-images')
+      .getPublicUrl(filename);
+
+    console.log('File uploaded successfully:', publicUrl);
     
     return NextResponse.json({ 
-      url: `/uploads/${filename}`,
+      url: publicUrl,
       success: true 
     });
   } catch (error) {

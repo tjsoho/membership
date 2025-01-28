@@ -93,12 +93,17 @@ export function CreateCourseForm({ course, onCancel }: CreateCourseFormProps) {
       const formData = new FormData();
       formData.append("file", file);
 
+      // Add detailed error logging
+      console.log("Starting image upload...");
+
       const res = await fetch("/api/admin/upload", {
         method: "POST",
         body: formData,
       });
 
+      console.log("Upload response status:", res.status);
       const data = await res.json();
+      console.log("Upload response data:", data);
 
       if (!res.ok) {
         throw new Error(data.error || "Failed to upload image");
@@ -107,7 +112,11 @@ export function CreateCourseForm({ course, onCancel }: CreateCourseFormProps) {
       setFormData((prev) => ({ ...prev, image: data.url }));
       setPreviewImage(data.url);
     } catch (error) {
-      console.error("Error uploading image:", error);
+      console.error("Detailed upload error:", {
+        error,
+        message: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       setError(
         error instanceof Error
           ? error.message
