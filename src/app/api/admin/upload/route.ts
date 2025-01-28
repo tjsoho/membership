@@ -6,6 +6,10 @@ export async function POST(request: Request) {
   try {
     const session = await getAuthSession();
     
+    // Log authentication details for debugging
+    console.log('Current user:', session?.user?.email);
+    console.log('Admin email:', process.env.ADMIN_EMAIL);
+    
     if (!session?.user?.email || session.user.email !== process.env.ADMIN_EMAIL) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -33,10 +37,16 @@ export async function POST(request: Request) {
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
     const filename = `course-${uniqueSuffix}${file.name.substring(file.name.lastIndexOf('.'))}`;
 
-    // Initialize Supabase client
+    // Initialize Supabase client with service role key
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
     );
 
     // Upload to Supabase Storage

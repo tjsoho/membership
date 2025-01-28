@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Your config options here
-}
+  images: {
+    domains: [
+      "kzljptxwgenuqbbzdbnd.supabase.co", // Add your Supabase project domain
+    ],
+  },
+};
 
-module.exports = nextConfig 
+module.exports = nextConfig;
