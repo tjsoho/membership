@@ -356,7 +356,7 @@ export function CreateCourseForm({ course, onCancel }: CreateCourseFormProps) {
             htmlFor="price"
             className="block text-sm font-medium text-coastal-ocean mb-1"
           >
-            Price (USD)
+            Price (AUD)
           </label>
           <input
             type="number"
@@ -540,7 +540,7 @@ export function CreateCourseForm({ course, onCancel }: CreateCourseFormProps) {
             </p>
             <div className="flex items-center justify-between">
               <span className="text-lg font-bold text-coastal-teal">
-                {formData.price ? `$${formData.price}` : "$0"}
+                {formData.price ? `$${formData.price} AUD` : "$0 AUD"}
               </span>
               <button
                 className="bg-coastal-ocean text-white px-4 py-2 rounded-lg 

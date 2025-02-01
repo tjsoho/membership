@@ -27,46 +27,29 @@ export function PurchaseButton({
 
   if (isUnlocked) {
     return (
-      <button
-        className="w-full bg-coastal-light-teal text-white px-6 py-3 rounded-lg opacity-50 cursor-not-allowed font-medium"
-        disabled
-      >
-        Purchased
-      </button>
+      <div className="flex items-center justify-between">
+        <span className="text-lg font-semibold text-coastal-light-teal">
+          ${price} AUD
+        </span>
+        <button
+          className="px-4 py-2 rounded-lg bg-coastal-light-teal text-white opacity-50 cursor-not-allowed font-medium"
+          disabled
+        >
+          Enrolled
+        </button>
+      </div>
     );
   }
 
   return (
-    <>
-      {isLoading && (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="text-center">
-            <LoadingSpinner size="lg" />
-            <p className="mt-4 text-coastal-dark-teal font-medium">
-              Loading course...
-            </p>
-          </div>
-        </div>
-      )}
-
+    <div className="flex items-center justify-between">
+      <span className="text-lg font-semibold">${price} AUD</span>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="w-full bg-coastal-dark-teal text-white px-6 py-3 rounded-lg hover:bg-coastal-light-teal transition-colors duration-200 font-medium shadow-sm"
+        className="px-4 py-2 rounded-lg transition-colors bg-coastal-ocean text-white hover:bg-coastal-oceanLight"
       >
-        Purchase for ${price}
+        Purchase Course
       </button>
-
-      <PaymentModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        courseId={courseId}
-        courseTitle={courseTitle}
-        price={price}
-        onSuccess={() => {
-          setIsLoading(true);
-          // The loading state will be cleared when the redirect happens
-        }}
-      />
-    </>
+    </div>
   );
 }

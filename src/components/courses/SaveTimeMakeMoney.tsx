@@ -82,12 +82,51 @@ export function PerfectHomePage() {
     setOverallProgress((completedSteps / courseSteps.length) * 100);
   }, [progress]);
 
-  // Mark step as completed
-  const markStepCompleted = (stepId: number) => {
-    setProgress((prev) => ({
-      ...prev,
-      [stepId]: true,
-    }));
+  // Load progress when component mounts
+  useEffect(() => {
+    async function loadProgress() {
+      const res = await fetch(
+        `/api/courses/progress?courseId=${params.courseId}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const progressMap = data.reduce(
+          (acc: Record<number, boolean>, item: any) => {
+            acc[item.stepId] = item.completed;
+            return acc;
+          },
+          {}
+        );
+        setProgress(progressMap);
+      }
+    }
+    loadProgress();
+  }, [params.courseId]);
+
+  // Update the markStepCompleted function
+  const markStepCompleted = async (stepId: number) => {
+    try {
+      const res = await fetch("/api/courses/progress", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          courseId: params.courseId,
+          stepId,
+          completed: true,
+        }),
+      });
+
+      if (res.ok) {
+        setProgress((prev) => ({
+          ...prev,
+          [stepId]: true,
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to update progress:", error);
+    }
   };
 
   // Handle video state
