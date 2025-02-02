@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import Stripe from "stripe";
+import { PROMO_CODES, PromoCodeKey } from '@/lib/promoCodeMapping';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -12,6 +13,14 @@ export async function POST(request: Request) {
     }
 
     const { code } = await request.json();
+
+    // Get the Stripe promotion code ID from our mapping
+    const upperCode = code.toUpperCase();
+    if (!(upperCode in PROMO_CODES)) {
+      return NextResponse.json({ error: "Invalid discount code" }, { status: 400 });
+    }
+
+    const promoCodeId = PROMO_CODES[upperCode as PromoCodeKey];
 
     // Fetch the promotion code from Stripe
     const promotionCodes = await stripe.promotionCodes.list({
@@ -35,18 +44,19 @@ export async function POST(request: Request) {
     const amount = coupon.amount_off ? coupon.amount_off / 100 : 0;
 
     console.log('Received code:', code);
-    console.log('Found promotion code:', promotionCode);
+    console.log('Found promotion code:', {
+      id: promotionCode.id,
+      code: promotionCode.code,
+      coupon: promotionCode.coupon
+    });
     console.log('Coupon details:', coupon);
 
     return NextResponse.json({ 
       success: true,
       amount,
-      promotionCode: promotionCode.id,
+      promotionCode: promoCodeId, // Use the mapped promo code ID
       couponId: promotionCode.coupon.id,
-      debug: {
-        couponId: promotionCode.coupon.id,
-        promotionCodeId: promotionCode.id
-      }
+      promoCodeDetails: promotionCode
     });
   } catch (error) {
     console.error('Discount validation error:', error);

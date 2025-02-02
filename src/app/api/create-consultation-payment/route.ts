@@ -29,7 +29,9 @@ export async function POST(request: Request) {
 
     if (promotionCode) {
       console.log('Adding promotion code to payment intent:', promotionCode);
-      (paymentIntentData as any).discounts = [{ promotion_code: promotionCode }];
+      (paymentIntentData as any).discounts = [{ 
+        promotion_code: promotionCode // Use the promotion code ID passed from validation
+      }];
     }
 
     console.log('Payment intent data:', paymentIntentData);
