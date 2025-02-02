@@ -21,14 +21,15 @@ export async function POST(request: Request) {
         userId: session.user.id,
         productId,
         type: "consultation"
+      },
+      automatic_payment_methods: {
+        enabled: true,
       }
     };
 
     if (promotionCode) {
       console.log('Adding promotion code to payment intent:', promotionCode);
-      paymentIntentData.discounts = [{
-        promotion_code: promotionCode
-      }];
+      (paymentIntentData as any).discounts = [{ promotion_code: promotionCode }];
     }
 
     console.log('Payment intent data:', paymentIntentData);

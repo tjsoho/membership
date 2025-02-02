@@ -31,6 +31,7 @@ function PaymentForm({
   appliedDiscount,
   onApplyDiscount,
   isLoading,
+  setIsLoading,
 }: {
   onSuccess: () => void;
   price: number;
@@ -42,6 +43,7 @@ function PaymentForm({
   appliedDiscount: { code: string; amount: number } | null;
   onApplyDiscount: (code: string) => void;
   isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -193,6 +195,7 @@ export function ConsultationModal({
     code: string;
     amount: number;
     promotionCode: string;
+    couponId: string;
   } | null>(null);
 
   // Add Calendly event listener
@@ -229,6 +232,7 @@ export function ConsultationModal({
           code,
           amount: data.amount,
           promotionCode: data.promotionCode,
+          couponId: data.couponId,
         });
       }
     } catch (error) {
@@ -248,7 +252,7 @@ export function ConsultationModal({
         },
         body: JSON.stringify({
           productId,
-          promotionCode: appliedDiscount?.promotionCode,
+          promotionCode: appliedDiscount?.couponId,
         }),
       });
 
@@ -351,6 +355,7 @@ export function ConsultationModal({
                   appliedDiscount={appliedDiscount}
                   onApplyDiscount={handleApplyDiscount}
                   isLoading={isLoading}
+                  setIsLoading={setIsLoading}
                 />
               </Elements>
             </div>

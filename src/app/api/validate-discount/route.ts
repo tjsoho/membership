@@ -42,6 +42,7 @@ export async function POST(request: Request) {
       success: true,
       amount,
       promotionCode: promotionCode.id,
+      couponId: promotionCode.coupon.id,
       debug: {
         couponId: promotionCode.coupon.id,
         promotionCodeId: promotionCode.id
