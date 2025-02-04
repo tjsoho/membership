@@ -3,15 +3,18 @@ import { useState } from "react";
 import Image from "next/image";
 import { ConsultationModal } from "./ConsultationModal";
 import { LoadingWave } from "@/components/ui/LoadingWave";
+import { Modal } from "@/components/ui/Modal";
 
 interface ConsultationCardProps {
   id: string;
   title: string;
   description: string;
   image: string;
-  successImage: string;
-  price: number;
-  calendlyUrl: string;
+  successImage?: string;
+  price?: number;
+  calendlyUrl?: string;
+  type?: "consultation" | "external";
+  externalUrl?: string;
 }
 
 export function ConsultationCard({
@@ -22,6 +25,8 @@ export function ConsultationCard({
   successImage,
   price,
   calendlyUrl,
+  type,
+  externalUrl,
 }: ConsultationCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +41,7 @@ export function ConsultationCard({
     <>
       <div
         onClick={handleClick}
-        className="relative border-2 border-coastal-teal rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer bg-white hover:scale-[1.02]"
+        className="relative rounded-xl border border-white overflow-hidden shadow-xl hover:shadow-md transition-all cursor-pointer bg-white hover:scale-[1.02]"
       >
         <div className="relative h-48 w-full">
           <Image
@@ -65,17 +70,48 @@ export function ConsultationCard({
         )}
       </div>
 
-      <ConsultationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={title}
-        description={description}
-        image={image}
-        successImage={successImage}
-        price={price}
-        calendlyUrl={calendlyUrl}
-        productId={id}
-      />
+      {type === "external" ? (
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <div className="p-6 max-w-2xl mx-auto">
+            <div className="relative h-48 w-full mb-6">
+              <Image
+                src={image}
+                alt={title}
+                fill
+                className="object-cover rounded-lg"
+                priority
+              />
+            </div>
+            <h2 className="text-2xl font-bold text-coastal-dark-teal mb-4">
+              {title}
+            </h2>
+            <div
+              className="text-gray-600 whitespace-pre-line mb-6"
+              dangerouslySetInnerHTML={{ __html: description }}
+            />
+            <a
+              href={externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 inline-block px-6 py-3 bg-coastal-dark-teal text-white rounded-lg hover:bg-coastal-teal transition-colors w-full text-center"
+            >
+              Join Sloane
+            </a>
+          </div>
+        </Modal>
+      ) : (
+        <ConsultationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title={title}
+          description={description}
+          image={image}
+          successImage={successImage || image}
+          price={price || 0}
+          calendlyUrl={calendlyUrl || ""}
+          productId={id}
+        />
+      )}
     </>
   );
 }

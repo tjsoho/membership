@@ -3,7 +3,14 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { exportToBlob } from "@excalidraw/excalidraw";
 import { IoSave, IoMail, IoClose } from "react-icons/io5";
-import { MdNote, MdDraw, MdExpandMore, MdExpandLess } from "react-icons/md";
+import {
+  MdNote,
+  MdDraw,
+  MdExpandMore,
+  MdExpandLess,
+  MdEmail,
+  MdCamera,
+} from "react-icons/md";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import {
@@ -411,6 +418,43 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
     );
   }, []);
 
+  const handleAction = async (item: WorkspaceItem) => {
+    if (item.type === "NOTES") {
+      try {
+        const response = await fetch("/api/email-workspace", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ itemId: item.id }),
+        });
+
+        if (response.ok) {
+          showToast.success("Success", "Notes sent to your email!");
+        } else {
+          showToast.error("Error", "Failed to send notes");
+        }
+      } catch (error) {
+        showToast.error("Error", "Failed to send notes");
+      }
+    } else if (item.type === "MINDMAP") {
+      try {
+        showToast.processing("Processing", "Capturing screenshot...");
+
+        // Take screenshot of the entire workspace area
+        const element = document.querySelector(".col-span-3") as HTMLElement;
+        if (element) {
+          const canvas = await html2canvas(element);
+          const link = document.createElement("a");
+          link.download = `mindmap-${item.title}.png`;
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+          showToast.success("Success", "Screenshot captured and downloaded!");
+        }
+      } catch (error) {
+        showToast.error("Error", "Failed to capture screenshot");
+      }
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-coastal-sand overflow-hidden">
       {/* Workspace Header */}
@@ -552,18 +596,23 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleSendEmail(item);
+                          handleAction(item);
                         }}
                         className="text-coastal-dark-teal hover:text-coastal-light-teal transition-all"
-                        title="Send via email"
+                        title={
+                          item.type === "NOTES"
+                            ? "Send via email"
+                            : "Download as image"
+                        }
                       >
-                        <IoMail size={16} />
+                        {item.type === "NOTES" ? (
+                          <MdEmail size={16} />
+                        ) : (
+                          <MdCamera size={16} />
+                        )}
                       </button>
                       <button
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          handleDelete(e, item.id);
-                        }}
+                        onClick={(e) => handleDelete(e, item.id)}
                         className="text-red-500 hover:text-red-700 transition-all"
                         title="Delete item"
                       >

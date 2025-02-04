@@ -55,8 +55,41 @@ const consultationProducts = [
     price: 299,
     calendlyUrl:
       "https://calendly.com/sloane-bookings/business-strategy-session-savvy-business-hub",
+    type: "consultation" as const,
   },
-  // Add your second product here
+  {
+    id: "prod_sloane",
+    title: "Sloane",
+    description: `Revolutionize your business with Sloane - your AI-powered business assistant:
+
+    • Automate repetitive tasks
+    • Streamline operations
+    • Enhance customer interactions
+    • Scale your business efficiently
+
+    Discover more about Sloane at <a href="https://www.sloane.biz" target="_blank" rel="noopener noreferrer" class="text-coastal-dark-teal hover:text-coastal-teal">www.sloane.biz</a>
+    `,
+    image: "/images/banner.png",
+    type: "external" as const,
+    externalUrl: "https://app.sloane.biz/userform",
+  },
+  {
+    id: "prod_consultation_website",
+    title: "Website Consultation",
+    description: `Let's optimize your website for maximum impact and conversions. In this focused session, we'll:
+
+    • Review your current website architecture
+    • Identify UX/UI improvement opportunities
+    • Analyze conversion optimization points
+    • Provide actionable recommendations
+    
+    Book your session to transform your website into a powerful business tool.`,
+    image: "/images/toby2.jpg",
+    successImage: "/images/toby2.jpg",
+    price: 149,
+    calendlyUrl: "https://calendly.com/sloane-bookings/website-consultation",
+    type: "consultation" as const,
+  },
 ];
 
 export default async function DashboardPage() {
@@ -106,15 +139,16 @@ export default async function DashboardPage() {
 
         {/* Consultation section */}
         <section className="mt-12">
-          <h2 className="text-2xl font-bold text-coastal-dark-teal mb-6">
-            1:1 Strategy Sessions
+          <h2 className="text-4xl font-bold text-coastal-dark-teal mb-4 text-center">
+            Work With Me
           </h2>
-          <div className="flex justify-start">
-            <div className="max-w-md w-full">
-              {consultationProducts.map((product) => (
-                <ConsultationCard key={product.id} {...product} />
-              ))}
-            </div>
+          {/* add a thin line under the title */}
+          <div className="w-16 h-[2px] bg-coastal-dark-teal mx-auto mb-6"></div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            {consultationProducts.map((product) => (
+              <ConsultationCard key={product.id} {...product} />
+            ))}
           </div>
         </section>
       </div>
