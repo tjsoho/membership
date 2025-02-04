@@ -437,9 +437,11 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
       }
     } else if (item.type === "MINDMAP") {
       try {
-        showToast.processing("Processing", "Capturing screenshot...");
+        const toastId = showToast.processing(
+          "Processing",
+          "Capturing screenshot..."
+        );
 
-        // Take screenshot of the entire workspace area
         const element = document.querySelector(".col-span-3") as HTMLElement;
         if (element) {
           const canvas = await html2canvas(element);
@@ -447,6 +449,8 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
           link.download = `mindmap-${item.title}.png`;
           link.href = canvas.toDataURL("image/png");
           link.click();
+
+          toast.dismiss(toastId); // Dismiss the processing toast
           showToast.success("Success", "Screenshot captured and downloaded!");
         }
       } catch (error) {
