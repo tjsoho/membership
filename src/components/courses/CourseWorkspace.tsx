@@ -385,38 +385,50 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
     });
   };
 
-  const handleDelete = useCallback((e: React.MouseEvent, itemId: string) => {
-    e.stopPropagation();
+  const handleDelete = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>, itemId: string) => {
+      e.stopPropagation();
 
-    showToast.delete(
-      "Confirm Delete",
-      "Are you sure you want to delete this item?",
-      async () => {
-        try {
-          const response = await fetch(`/api/workspace?id=${itemId}`, {
-            method: "DELETE",
-          });
+      showToast.delete(
+        "Confirm Delete",
+        "Are you sure you want to delete this item?",
+        async () => {
+          try {
+            const response = await fetch(`/api/workspace?id=${itemId}`, {
+              method: "DELETE",
+            });
 
-          if (!response.ok) throw new Error("Failed to delete item");
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.message || "Failed to delete item");
+            }
 
-          setWorkspaceItems((prevItems) =>
-            prevItems.filter((item) => item.id !== itemId)
-          );
+            setWorkspaceItems((prevItems) =>
+              prevItems.filter((item) => item.id !== itemId)
+            );
 
-          if (editingItem?.id === itemId) {
-            setEditingItem(null);
-            setCurrentTitle("");
-            setNoteContent(defaultNoteContent);
+            if (editingItem?.id === itemId) {
+              setEditingItem(null);
+              setCurrentTitle("");
+              setNoteContent(defaultNoteContent);
+            }
+
+            showToast.success("Deleted", "Item has been successfully deleted");
+          } catch (error) {
+            console.error("Failed to delete item:", error);
+            showToast.error("Error", "Failed to delete item");
           }
-
-          showToast.success("Deleted", "Item has been successfully deleted");
-        } catch (error) {
-          console.error("Failed to delete item:", error);
-          showToast.error("Error", "Failed to delete item");
         }
-      }
-    );
-  }, []);
+      );
+    },
+    [
+      editingItem,
+      setWorkspaceItems,
+      setEditingItem,
+      setCurrentTitle,
+      setNoteContent,
+    ]
+  );
 
   const handleAction = async (item: WorkspaceItem) => {
     if (item.type === "NOTES") {
