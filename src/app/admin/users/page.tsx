@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useEffect, useState } from "react";
-import { LoadingSpinner } from "../../../components/ui/LoadingSpinner";
+import { LoadingWave } from "../../../components/ui/LoadingWave";
 
 interface UserData {
   id: string;
@@ -48,7 +48,7 @@ export default function AdminUsersPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-coastal-light-grey p-8 flex items-center justify-center">
-        <LoadingSpinner size="lg" />
+        <LoadingWave />
       </div>
     );
   }

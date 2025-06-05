@@ -1,6 +1,6 @@
 // src/app/api/external/create-checkout/route.ts
-import { stripe } from '@/lib/stripe'
-import { prisma } from '@/lib/db/prisma'
+import { stripe } from '../../../../lib/stripe'
+import { prisma } from '../../../../lib/db/prisma'
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 

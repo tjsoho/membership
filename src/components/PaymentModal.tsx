@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import React, { useState, useEffect } from "react";
 import {
   Elements,
   PaymentElement,
@@ -7,8 +8,8 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { Dialog } from "@headlessui/react";
-import { stripePromise } from "@/lib/stripe-client";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { stripePromise } from "../lib/stripe-client";
+import { LoadingWave } from "./ui/LoadingWave";
 
 /******************************************************************************
                                 TYPES
@@ -76,7 +77,7 @@ export function PaymentModal({
               </Elements>
             ) : (
               <div className="text-center py-4">
-                <LoadingSpinner size="md" />
+                <LoadingWave />
                 <p className="mt-2 text-coastal-dark-grey">
                   Loading payment form...
                 </p>
@@ -145,7 +146,7 @@ function CheckoutForm({
       {processing && (
         <div className="fixed inset-0 bg-white flex items-center justify-center z-[100]">
           <div className="text-center">
-            <LoadingSpinner size="lg" />
+            <LoadingWave />
             <p className="mt-4 text-lg font-medium text-coastal-dark-teal">
               Processing your purchase...
             </p>

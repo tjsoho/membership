@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CreateCourseForm } from "./CreateCourseForm";
 import { CourseCard } from "../CourseCard";

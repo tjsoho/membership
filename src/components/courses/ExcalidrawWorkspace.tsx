@@ -2,108 +2,57 @@
 
 import { useCallback, useRef, useState, useEffect } from 'react'
 import { Excalidraw } from '@excalidraw/excalidraw'
+import type { ExcalidrawElement } from '@excalidraw/excalidraw/types/element/types'
+import type { AppState } from '@excalidraw/excalidraw/types/types'
+import type { BinaryFiles } from '@excalidraw/excalidraw/types/types'
 import debounce from 'lodash/debounce'
-import { MdFullscreen, MdFullscreenExit } from 'react-icons/md'
 
-export interface ExcalidrawElement {
-  type: string
-  version: number
-  versionNonce: number
-  isDeleted: boolean
-  id: string
-  fillStyle: string
-  strokeWidth: number
-  strokeStyle: string
-  roughness: number
-  opacity: number
-  angle: number
-  x: number
-  y: number
-  strokeColor: string
-  backgroundColor: string
-  width: number
-  height: number
-  seed: number
-  groupIds: string[]
-  frameId: null | string
-  roundness: null | { type: number; value: number }
-  boundElements: null | { type: string; id: string }[]
-  updated: number
-  link: null | string
-  locked: boolean
-}
+export type { ExcalidrawElement }
 
 export interface ExcalidrawContent {
-  elements: ExcalidrawElement[]
-  appState: {
-    viewBackgroundColor: string
-    currentItemFontFamily: number
-    zoom: { value: number }
-    scrollX: number
-    scrollY: number
-  }
+  elements: readonly ExcalidrawElement[]
+  appState: AppState
 }
 
 interface ExcalidrawWorkspaceProps {
   content?: ExcalidrawContent
   onSave?: (content: ExcalidrawContent) => void
   isEditing?: boolean
-  setTmpAppState?:any
-  setTmpElement?:any
+  setTmpAppState?: (state: AppState) => void
+  setTmpElement?: (elements: readonly ExcalidrawElement[]) => void
 }
 
-export function ExcalidrawWorkspace({ content, onSave, isEditing,setTmpAppState,setTmpElement }: ExcalidrawWorkspaceProps) {
-  const excalidrawRef = useRef<any>(null)
+export function ExcalidrawWorkspace({ content, onSave, isEditing, setTmpAppState, setTmpElement }: ExcalidrawWorkspaceProps) {
   const [lastSavedData, setLastSavedData] = useState<ExcalidrawContent | null>(null)
   const [isWorkspaceExpanded, setIsWorkspaceExpanded] = useState(false)
 
   // Load initial content
   useEffect(() => {
-    if (content && excalidrawRef.current) {
+    if (content) {
       console.log('Loading content into Excalidraw:', content)
-      try {
-        excalidrawRef.current.updateScene({
-          elements: content.elements || [],
-          appState: {
-            ...content.appState,
-            viewBackgroundColor: content.appState?.viewBackgroundColor || '#ffffff',
-            currentItemFontFamily: content.appState?.currentItemFontFamily || 1,
-          }
-        })
-      } catch (error) {
-        console.error('Error loading content:', error)
-      }
     }
   }, [content])
 
   const debouncedSave = useCallback(
-    debounce((elements: ExcalidrawElement[], appState: any) => {
-      setTmpElement(elements)
-      setTmpAppState(appState)
+    (elements: readonly ExcalidrawElement[], appState: AppState) => {
+      setTmpElement?.(elements)
+      setTmpAppState?.(appState)
       if (!onSave || !isEditing || !elements) return
-      
-      // Only save if there are elements or if we're explicitly saving
+
       if (elements.length > 0) {
         const saveContent: ExcalidrawContent = {
           elements,
-          appState: {
-            viewBackgroundColor: appState.viewBackgroundColor || '#ffffff',
-            currentItemFontFamily: appState.currentItemFontFamily || 1,
-            zoom: appState.zoom || { value: 1 },
-            scrollX: appState.scrollX || 0,
-            scrollY: appState.scrollY || 0,
-          }
+          appState
         }
-        
-        // Only save if content has changed
+
         if (JSON.stringify(saveContent) !== JSON.stringify(lastSavedData)) {
           console.log('Saving new content:', saveContent)
           onSave(saveContent)
           setLastSavedData(saveContent)
         }
       }
-    }, 1000),
-    [onSave, isEditing, lastSavedData]
+    },
+    [onSave, isEditing, lastSavedData, setTmpElement, setTmpAppState]
   )
 
   // Add this useEffect for handling the Escape key
@@ -129,24 +78,23 @@ export function ExcalidrawWorkspace({ content, onSave, isEditing,setTmpAppState,
         ${isWorkspaceExpanded ? 'fixed inset-0 z-50 bg-white' : ''}
       `}>
         <Excalidraw
-          ref={excalidrawRef}
           initialData={{
             elements: content?.elements || [],
             appState: {
               viewBackgroundColor: content?.appState?.viewBackgroundColor || '#ffffff',
               currentItemFontFamily: content?.appState?.currentItemFontFamily || 1,
-              zoom: content?.appState?.zoom || { value: 1 },
+              zoom: content?.appState?.zoom || { value: 1 as any },
               scrollX: content?.appState?.scrollX || 0,
               scrollY: content?.appState?.scrollY || 0,
             }
           }}
-          onChange={(elements: ExcalidrawElement[], appState: any) => {
+          onChange={(elements: readonly ExcalidrawElement[], appState: AppState, files: BinaryFiles) => {
             if (elements && elements.length > 0) {
               debouncedSave(elements, appState)
             }
           }}
         />
-        
+
         <button
           onClick={() => setIsWorkspaceExpanded(!isWorkspaceExpanded)}
           className="absolute bottom-4 left-1/2 transform -translate-x-1/2 

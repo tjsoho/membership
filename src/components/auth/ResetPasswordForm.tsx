@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { signIn } from "next-auth/react";
-import { showToast } from "@/utils/toast";
+import { toast } from "react-hot-toast";
 
 export function ResetPasswordForm({ token }: { token: string }) {
   const router = useRouter();
@@ -103,10 +103,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
       }
 
       const resetData = await resetResponse.json();
-      showToast.success(
-        "Password Reset",
-        "Your password has been successfully reset"
-      );
+      toast.success("Your password has been successfully reset");
       setIsSuccess(true);
 
       // Try to sign in with the email from the response
@@ -130,16 +127,15 @@ export function ResetPasswordForm({ token }: { token: string }) {
       }
     } catch (error) {
       console.error("Reset password error:", error);
-      showToast.error(
-        "Reset Failed",
+      toast.error(
         error instanceof Error
           ? error.message
-          : "Unable to reset password. Please try again or contact support."
+          : "Failed to reset password. Please try again."
       );
       setError(
         error instanceof Error
           ? error.message
-          : "Unable to reset password. Please try again or contact support."
+          : "Failed to reset password. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -263,9 +259,8 @@ export function ResetPasswordForm({ token }: { token: string }) {
         </div>
         {passwordsMatch !== null && (
           <p
-            className={`mt-1 text-sm ${
-              passwordsMatch ? "text-green-500" : "text-red-500"
-            }`}
+            className={`mt-1 text-sm ${passwordsMatch ? "text-green-500" : "text-red-500"
+              }`}
           >
             {passwordsMatch ? "Passwords match" : "Passwords do not match"}
           </p>

@@ -84,19 +84,31 @@ export function PerfectHomePage() {
   // Load progress when component mounts
   useEffect(() => {
     async function loadProgress() {
-      const res = await fetch(
-        `/api/courses/progress?courseId=${params.courseId}`
-      );
-      if (res.ok) {
-        const data = await res.json();
-        const progressMap = data.reduce(
-          (acc: Record<number, boolean>, item: any) => {
-            acc[item.stepId] = item.completed;
-            return acc;
-          },
-          {}
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+        const res = await fetch(
+          `/api/courses/progress?courseId=${params.courseId}`,
+          { signal: controller.signal }
         );
-        setProgress(progressMap);
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const data = await res.json();
+          const progressMap = data.reduce(
+            (acc: Record<number, boolean>, item: any) => {
+              acc[item.stepId] = item.completed;
+              return acc;
+            },
+            {}
+          );
+          setProgress(progressMap);
+        } else {
+          console.error("Failed to load progress:", res.statusText);
+        }
+      } catch (error) {
+        console.error("Error loading progress:", error);
       }
     }
     loadProgress();
@@ -389,9 +401,8 @@ export function PerfectHomePage() {
       const toastId = toast.custom(
         (t) => (
           <div
-            className={`${
-              t.visible ? "animate-enter" : "animate-leave"
-            } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex items-center justify-between p-4`}
+            className={`${t.visible ? "animate-enter" : "animate-leave"
+              } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex items-center justify-between p-4`}
           >
             <div className="flex items-center">
               <HiArrowDown className="text-coastal-dark-teal w-6 h-6 animate-bounce" />
@@ -467,20 +478,18 @@ export function PerfectHomePage() {
                   key={step.id}
                   onClick={() => setActiveStep(step)}
                   className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200
-                    ${
-                      activeStep.id === step.id
-                        ? "bg-coastal-dark-teal text-white shadow-md"
-                        : "text-coastal-dark-grey hover:bg-coastal-light-grey"
+                    ${activeStep.id === step.id
+                      ? "bg-coastal-dark-teal text-white shadow-md"
+                      : "text-coastal-dark-grey hover:bg-coastal-light-grey"
                     }`}
                 >
                   <div className="flex items-center">
                     <span
                       className={`w-6 h-6 rounded-full flex items-center justify-center mr-3
-                      ${
-                        progress[step.id]
+                      ${progress[step.id]
                           ? "bg-coastal-light-teal text-white"
                           : "border-2 border-current"
-                      }`}
+                        }`}
                     >
                       {progress[step.id] ? (
                         <IoCheckmarkCircle size={20} />
@@ -512,9 +521,8 @@ export function PerfectHomePage() {
                 <div
                   className={`aspect-video mb-4 bg-black rounded-lg overflow-hidden
                                transition-all duration-300
-                               ${
-                                 isVideoFloating ? "opacity-0" : "opacity-100"
-                               }`}
+                               ${isVideoFloating ? "opacity-0" : "opacity-100"
+                    }`}
                 >
                   <MainVideo />
                 </div>
@@ -546,10 +554,9 @@ export function PerfectHomePage() {
                   <button
                     onClick={() => markStepCompleted(activeStep.id)}
                     className={`px-4 py-2 rounded-lg transition-colors
-                      ${
-                        progress[activeStep.id]
-                          ? "bg-coastal-light-teal text-white"
-                          : "bg-coastal-dark-teal text-white hover:bg-coastal-light-teal"
+                      ${progress[activeStep.id]
+                        ? "bg-coastal-light-teal text-white"
+                        : "bg-coastal-dark-teal text-white hover:bg-coastal-light-teal"
                       }`}
                   >
                     {progress[activeStep.id] ? "Completed" : "Mark Complete"}

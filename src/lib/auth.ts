@@ -71,7 +71,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         // Fetch isAdmin from the database if not present
         const dbUser = await prisma.user.findUnique({
-          where: { email: user.email },
+          where: { email: user.email ?? "" },
         });
         token.id = user.id;
         token.email = user.email;

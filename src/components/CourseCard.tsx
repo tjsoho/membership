@@ -6,7 +6,7 @@ import React from "react";
 import { useState } from "react";
 import { PurchaseButton } from "./PurchaseButton";
 import Image from "next/image";
-import { LoadingSpinner } from "./ui/LoadingSpinner";
+import { LoadingWave } from "./ui/LoadingWave";
 import { useRouter } from "next/navigation";
 
 /******************************************************************************
@@ -97,7 +97,7 @@ export function CourseCard({
           )}
         </div>
       </div>
-      {isLoading && <LoadingSpinner message="Loading course..." />}
+      {isLoading && <LoadingWave />}
     </>
   );
 }

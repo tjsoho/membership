@@ -3,7 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { showToast } from "@/utils/toast";
+import { showToast } from "../../utils/toast";
 import { ContactSupportForm } from "./ContactSupportForm";
 
 interface LoginFormProps {

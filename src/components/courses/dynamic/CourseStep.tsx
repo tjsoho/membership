@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 
-export function CourseStep({ step }) {
+interface Step {
+    title: string;
+    videoUrl: string;
+    transcript: string;
+}
+
+export function CourseStep({ step }: { step: Step }) {
     const [showTranscript, setShowTranscript] = useState(false);
     return (
         <div className="bg-coastal-light-grey rounded-lg p-4">

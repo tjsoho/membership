@@ -4,7 +4,21 @@ import { CourseHighlights } from "./CourseHighlights";
 import { CourseLearningPoints } from "./CourseLearningPoints";
 import { CourseStepList } from "./CourseStepList";
 
-export function CourseTemplate({ title, highlights, whatYouWillLearn, steps }) {
+interface Step {
+    id?: string;
+    title: string;
+    videoUrl: string;
+    transcript: string;
+}
+
+interface CourseTemplateProps {
+    title: string;
+    highlights: string[];
+    whatYouWillLearn: string[];
+    steps: Step[];
+}
+
+export function CourseTemplate({ title, highlights, whatYouWillLearn, steps }: CourseTemplateProps) {
     return (
         <div className="min-h-screen bg-coastal-light-grey">
             <div className="max-w-6xl mx-auto space-y-8 p-8">

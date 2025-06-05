@@ -3,7 +3,7 @@
 ******************************************************************************/
 'use client'
 import { createContext, useContext, useState, ReactNode } from 'react'
-import { LoadingSpinner } from '../ui/LoadingSpinner'
+import { LoadingWave } from '../ui/LoadingWave'
 
 /******************************************************************************
                                 TYPES
@@ -42,7 +42,7 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
   return (
     <LoadingContext.Provider value={{ setIsLoading, showLoader, hideLoader }}>
       {children}
-      {isLoading && <LoadingSpinner message={message} />}
+      {isLoading && <LoadingWave />}
     </LoadingContext.Provider>
   )
 }

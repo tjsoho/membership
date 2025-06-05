@@ -1,6 +1,6 @@
 'use server'
-import { stripe } from '@/lib/stripe'
-import { prisma } from '@/lib/db/prisma'
+import { stripe } from '../../lib/stripe'
+import { prisma } from '../../lib/db/prisma'
 
 export async function verifyAndRecordPurchase(paymentIntentId: string, userId: string, courseId: string) {
   console.log('=== SERVER ACTION STARTED ===')

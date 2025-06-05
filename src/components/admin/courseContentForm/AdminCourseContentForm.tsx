@@ -1,7 +1,19 @@
 import React, { useState } from "react";
 import { ContentStepList } from "./ContentStepList";
 
-export function AdminCourseContentForm({ initialSteps = [], onSave }) {
+interface CourseStep {
+    title: string;
+    videoUrl: string;
+    transcript: string;
+    duration?: string;
+}
+
+interface AdminCourseContentFormProps {
+    initialSteps?: CourseStep[];
+    onSave: (steps: CourseStep[]) => Promise<void>;
+}
+
+export function AdminCourseContentForm({ initialSteps = [], onSave }: AdminCourseContentFormProps) {
     const [steps, setSteps] = useState(initialSteps);
     const [saving, setSaving] = useState(false);
 

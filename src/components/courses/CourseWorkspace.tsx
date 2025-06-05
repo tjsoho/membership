@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { exportToBlob } from "@excalidraw/excalidraw";
-import { IoSave, IoMail, IoClose } from "react-icons/io5";
+import { IoSave, IoClose } from "react-icons/io5";
 import {
   MdNote,
   MdDraw,
@@ -23,14 +23,8 @@ import { showToast } from "../../utils/toast";
 import { RichTextEditor } from "../RichTextEditor";
 import { Descendant } from "slate";
 import toast from "react-hot-toast";
-import dynamic from "next/dynamic";
-import { useSession } from "next-auth/react";
-
-// Dynamically import Excalidraw with no SSR
-const Excalidraw = dynamic(
-  () => import("@excalidraw/excalidraw").then((mod) => mod.Excalidraw),
-  { ssr: false }
-);
+import { NonDeleted } from "@excalidraw/excalidraw/types/element/types";
+import type { AppState, NormalizedZoomValue } from "@excalidraw/excalidraw/types/types";
 
 type TabType = "mindmap" | "notes" | null;
 type WorkspaceType = "MINDMAP" | "NOTES";
@@ -47,14 +41,6 @@ interface CourseWorkspaceProps {
   userEmail: string;
   courseId: string;
 }
-
-type AppState = {
-  viewBackgroundColor: string;
-  currentItemFontFamily: number;
-  zoom: { value: number };
-  scrollX: number;
-  scrollY: number;
-};
 
 const convertHtmlToPdf = async (html: string): Promise<Blob> => {
   const container = document.createElement("div");
@@ -99,11 +85,11 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
   const [sceneVersion, setSceneVersion] = useState<number>(0);
   const excalidrawRef = useRef<any>(null);
 
-  const [tmpElement, setTmpElement] = useState<ExcalidrawElement[]>([]);
-  const [tmpAppState, setTmpAppState] = useState<AppState>({
+  const [tmpElement, setTmpElement] = useState<readonly ExcalidrawElement[]>([]);
+  const [tmpAppState, setTmpAppState] = useState<Partial<AppState>>({
     viewBackgroundColor: "#ffffff",
     currentItemFontFamily: 1,
-    zoom: { value: 1 },
+    zoom: { value: 1 as NormalizedZoomValue },
     scrollX: 0,
     scrollY: 0,
   });
@@ -150,7 +136,7 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
 
   useEffect(() => {
     fetchWorkspaceItems();
-  }, [courseId]);
+  }, [courseId, fetchWorkspaceItems]);
 
   const handleSave = async () => {
     if (!currentTitle) {
@@ -169,12 +155,17 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
         content = {
           elements: tmpElement || [],
           appState: {
+            ...tmpAppState,
             viewBackgroundColor: tmpAppState?.viewBackgroundColor || "#ffffff",
             currentItemFontFamily: tmpAppState?.currentItemFontFamily || 1,
-            zoom: tmpAppState?.zoom || { value: 1 },
+            zoom: tmpAppState?.zoom || { value: 1 as NormalizedZoomValue },
             scrollX: tmpAppState?.scrollX || 0,
             scrollY: tmpAppState?.scrollY || 0,
-          },
+            contextMenu: null,
+            showWelcomeScreen: false,
+            isLoading: false,
+            errorMessage: null,
+          } as AppState,
         };
       } else {
         // Ensure we have valid Slate content
@@ -264,7 +255,7 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
           mindMapContent.appState?.viewBackgroundColor || "#ffffff",
         currentItemFontFamily:
           mindMapContent.appState?.currentItemFontFamily || 1,
-        zoom: mindMapContent.appState?.zoom || { value: 1 },
+        zoom: mindMapContent.appState?.zoom || { value: 1 as NormalizedZoomValue },
         scrollX: mindMapContent.appState?.scrollX || 0,
         scrollY: mindMapContent.appState?.scrollY || 0,
       });
@@ -302,7 +293,7 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
         // Handle mind map - convert to PNG
         const excalidrawContent = item.content as ExcalidrawContent;
         fileBlob = await exportToBlob({
-          elements: excalidrawContent.elements || [],
+          elements: excalidrawContent.elements as NonDeleted<ExcalidrawElement>[],
           appState: {
             ...excalidrawContent.appState,
             exportWithDarkMode: false,
@@ -368,7 +359,7 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
       setTmpAppState({
         viewBackgroundColor: "#ffffff",
         currentItemFontFamily: 1,
-        zoom: { value: 1 },
+        zoom: { value: 1 as NormalizedZoomValue },
         scrollX: 0,
         scrollY: 0,
       });
@@ -479,6 +470,22 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
     }
   };
 
+  const onChange = useCallback(
+    (elements: readonly ExcalidrawElement[], appState: AppState) => {
+      setTmpElement([...elements]);
+      setTmpAppState(appState);
+    },
+    []
+  );
+
+  const onMindMapChange = useCallback(
+    (elements: readonly ExcalidrawElement[], appState: AppState) => {
+      setTmpElement([...elements]);
+      setTmpAppState(appState);
+    },
+    []
+  );
+
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-coastal-sand overflow-hidden">
       {/* Workspace Header */}
@@ -499,7 +506,7 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
                   setTmpAppState({
                     viewBackgroundColor: "#ffffff",
                     currentItemFontFamily: 1,
-                    zoom: { value: 1 },
+                    zoom: { value: 1 as NormalizedZoomValue },
                     scrollX: 0,
                     scrollY: 0,
                   });
@@ -534,7 +541,7 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
                   setTmpAppState({
                     viewBackgroundColor: "#ffffff",
                     currentItemFontFamily: 1,
-                    zoom: { value: 1 },
+                    zoom: { value: 1 as NormalizedZoomValue },
                     scrollX: 0,
                     scrollY: 0,
                   });
@@ -573,7 +580,7 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
               className="flex items-center gap-2 px-4 py-2 bg-coastal-dark-teal text-white rounded-lg hover:bg-coastal-light-teal transition-colors"
             >
               <IoSave size={20} />
-              {editingItem ? "Update" : "Save"}
+              {editingItem ? "Save" : "Save"}
             </button>
             <button
               onClick={() => {
@@ -619,7 +626,7 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleAction(item);
+                          item.type === "MINDMAP" ? handleSendEmail(item) : handleAction(item);
                         }}
                         className="text-coastal-dark-teal hover:text-coastal-light-teal transition-all"
                         title={

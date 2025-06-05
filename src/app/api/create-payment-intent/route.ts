@@ -1,8 +1,8 @@
 /******************************************************************************
                                 IMPORTS
 ******************************************************************************/
-import { getAuthSession } from '@/lib/auth'
-import { stripe } from '@/lib/stripe'
+import { getAuthSession } from '../../../lib/auth'
+import { stripe } from '../../../lib/stripe'
 import { NextResponse } from 'next/server'
 
 /******************************************************************************

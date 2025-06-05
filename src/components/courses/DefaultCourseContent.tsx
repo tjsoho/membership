@@ -1,5 +1,5 @@
 "use client";
-
+import React from "react";
 import { CourseWorkspace } from "./CourseWorkspace";
 import { useSession } from "next-auth/react";
 

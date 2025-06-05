@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { showToast } from "@/utils/toast";
+import React, { useState } from "react";
+import { toast } from "react-hot-toast";
 
 interface ForgotPasswordFormProps {
   onBackToLogin: () => void;
@@ -37,16 +36,10 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
         throw new Error("Failed to process request");
       }
 
-      showToast.success(
-        "Email Sent",
-        "If an account exists, you will receive reset instructions shortly"
-      );
+      toast.success("If an account exists, you will receive reset instructions shortly");
       setSuccess(true);
     } catch (error) {
-      showToast.error(
-        "Request Failed",
-        "Failed to send reset email. Please try again."
-      );
+      toast.error("Failed to send reset email. Please try again.");
       setError("Failed to send reset email. Please try again.");
     } finally {
       setIsLoading(false);

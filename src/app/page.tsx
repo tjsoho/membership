@@ -5,10 +5,10 @@
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { LoginForm } from "@/components/auth/LoginForm";
-import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
-import { RegisterForm } from "@/components/auth/RegisterForm";
-import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
+import { LoginForm } from "../components/auth/LoginForm";
+import { ForgotPasswordForm } from "../components/auth/ForgotPasswordForm";
+import { RegisterForm } from "../components/auth/RegisterForm";
+import { ResetPasswordForm } from "../components/auth/ResetPasswordForm";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 

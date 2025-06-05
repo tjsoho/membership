@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { getAuthSession } from "@/lib/auth";
-import { prisma } from "@/lib/db/prisma";
-import { stripe } from "@/lib/stripe";
+import { getAuthSession } from "../../../../lib/auth";
+import { prisma } from "../../../../lib/db/prisma";
+import { stripe } from "../../../../lib/stripe";
 
 export default async function SuccessPage({
   searchParams,

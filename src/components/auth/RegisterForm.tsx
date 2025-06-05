@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { showToast } from "@/utils/toast";
+import { showToast } from "../../utils/toast";
 
 interface RegisterFormProps {
   onBackToLogin: () => void;

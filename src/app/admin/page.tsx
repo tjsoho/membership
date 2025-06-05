@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import React from "react";
+import { LoadingWave } from "../../components/ui/LoadingWave";
 
 interface DashboardStats {
   totalUsers: number;
@@ -75,7 +75,7 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-coastal-light-grey p-8 flex items-center justify-center">
-        <LoadingSpinner size="lg" />
+        <LoadingWave />
       </div>
     );
   }

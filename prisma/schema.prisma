@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -19,10 +19,10 @@ model User {
   image               String?
   isAdmin             Boolean              @default(false)
   courseAccess        CourseAccess[]
+  courseProgress      CourseProgress[]
   passwordResetTokens PasswordResetToken[]
   purchases           Purchase[]
   workspaceItems      WorkspaceItem[]
-  courseProgress      CourseProgress[]
 }
 
 model CourseAccess {
@@ -45,20 +45,21 @@ model PasswordResetToken {
 }
 
 model Course {
-  id              String          @id @default(cuid())
-  title           String
-  description     String
-  image           String
-  price           Float
-  stripeProductId String?
-  highlights      String[]        @default([])
-  whatYouWillLearn String[]       @default([])
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  courseAccess    CourseAccess[]
-  purchases       Purchase[]
-  workspaceItems  WorkspaceItem[]
-  courseProgress  CourseProgress[]
+  id               String           @id @default(cuid())
+  title            String
+  description      String
+  image            String
+  price            Float
+  stripeProductId  String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  highlights       String[]         @default([])
+  whatYouWillLearn String[]         @default([])
+  courseAccess     CourseAccess[]
+  courseProgress   CourseProgress[]
+  courseSteps      CourseStep[]
+  purchases        Purchase[]
+  workspaceItems   WorkspaceItem[]
 }
 
 model Purchase {
@@ -66,9 +67,9 @@ model Purchase {
   userId          String
   courseId        String
   paymentIntentId String   @unique
-  purchaseSource  String   @default("INTERNAL")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  purchaseSource  String   @default("INTERNAL")
   course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -100,9 +101,21 @@ model CourseProgress {
   completed Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user    User    @relation(fields: [userId], references: [id])
-  course  Course  @relation(fields: [courseId], references: [id])
+  course    Course   @relation(fields: [courseId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, courseId, stepId])
+}
+
+model CourseStep {
+  id         String  @id @default(cuid())
+  courseId   String
+  title      String
+  videoUrl   String
+  transcript String
+  duration   String?
+  order      Int
+  course     Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
 }

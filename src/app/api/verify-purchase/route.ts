@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
-import { prisma } from '@/lib/db/prisma'
-import { getAuthSession } from '@/lib/auth'
+import { stripe } from '../../../lib/stripe'
+import { prisma } from '../../../lib/db/prisma'
+import { getAuthSession } from '../../../lib/auth'
 
 export async function POST(request: Request) {
   console.log('=== API ROUTE STARTED ===')

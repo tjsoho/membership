@@ -2,7 +2,8 @@
 
 import Image from "next/image"
 import { useSearchParams } from 'next/navigation'
-import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm'
+import { ResetPasswordForm } from '../../components/auth/ResetPasswordForm'
+import React from "react";
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams()

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getAuthSession } from "@/lib/auth";
+import { getAuthSession } from "../../../lib/auth";
 import Stripe from "stripe";
-import { PROMO_CODES, PromoCodeKey } from '@/lib/promoCodeMapping';
+import { PROMO_CODES, PromoCodeKey } from '../../../lib/promoCodeMapping';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 

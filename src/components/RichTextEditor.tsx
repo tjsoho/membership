@@ -1,6 +1,7 @@
 /******************************************************************************
                                 IMPORTS
 ******************************************************************************/
+
 import { useCallback, useMemo, useState } from "react";
 import {
   createEditor,
@@ -10,10 +11,9 @@ import {
   Transforms,
   Text,
   BaseEditor,
-  Node,
 } from "slate";
 import { Slate, Editable, withReact, useSlate, ReactEditor } from "slate-react";
-import { withHistory } from "slate-history";
+import { withHistory, HistoryEditor } from "slate-history";
 import {
   MdFormatColorText,
   MdFormatColorFill,
@@ -22,6 +22,7 @@ import {
   MdFormatAlignRight,
   MdFormatAlignJustify,
 } from "react-icons/md";
+
 
 /******************************************************************************
                                 TYPES
@@ -58,7 +59,7 @@ interface CustomText {
   backgroundColor?: string;
 }
 
-type CustomEditor = BaseEditor & ReactEditor;
+type CustomEditor = BaseEditor & ReactEditor & HistoryEditor;
 
 declare module "slate" {
   interface CustomTypes {
@@ -231,7 +232,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
    *                            RENDER
    ******************************************************************************/
   return (
-    
+
     <Slate
       editor={editor}
       // @ts-ignore: Slate component works with initialValue prop despite type error
@@ -259,7 +260,7 @@ const FormatButton = ({
   format: CustomFormatType;
   icon: string;
 }) => {
-  const editor = useSlate();
+  const editor = useSlate() as CustomEditor;
 
   return (
     <button
@@ -267,9 +268,8 @@ const FormatButton = ({
         event.preventDefault();
         toggleMark(editor, format);
       }}
-      className={`px-2 py-1 ${
-        isMarkActive(editor, format) ? "bg-gray-200" : "hover:bg-gray-100"
-      } rounded`}
+      className={`px-2 py-1 ${isMarkActive(editor, format) ? "bg-gray-200" : "hover:bg-gray-100"
+        } rounded`}
     >
       {icon}
     </button>
@@ -283,7 +283,7 @@ const BlockButton = ({
   format: CustomElementType;
   icon: string;
 }) => {
-  const editor = useSlate();
+  const editor = useSlate() as CustomEditor;
 
   return (
     <button
@@ -291,9 +291,8 @@ const BlockButton = ({
         event.preventDefault();
         toggleBlock(editor, format);
       }}
-      className={`px-2 py-1 ${
-        isBlockActive(editor, format) ? "bg-gray-200" : "hover:bg-gray-100"
-      } rounded`}
+      className={`px-2 py-1 ${isBlockActive(editor, format) ? "bg-gray-200" : "hover:bg-gray-100"
+        } rounded`}
     >
       {icon}
     </button>
@@ -382,7 +381,7 @@ const ColorPicker = ({
 };
 
 const Toolbar = () => {
-  const editor = useSlate();
+  const editor = useSlate() as CustomEditor;
 
   const handleFontChange = (font: string) => {
     Transforms.setNodes(

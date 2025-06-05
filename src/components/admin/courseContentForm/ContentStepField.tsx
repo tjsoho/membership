@@ -1,6 +1,14 @@
 import React from "react";
 
-export function ContentStepField({ label, value, onChange, textarea, required }) {
+interface ContentStepFieldProps {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    textarea?: boolean;
+    required?: boolean;
+}
+
+export function ContentStepField({ label, value, onChange, textarea, required }: ContentStepFieldProps) {
     return (
         <div className="mb-2">
             <label className="block text-sm font-medium text-coastal-ocean mb-1">{label}</label>
