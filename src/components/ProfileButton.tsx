@@ -2,14 +2,22 @@
 
 import { Fragment, useState } from "react";
 import { Menu, Transition } from "@headlessui/react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { RiMenu3Line } from "react-icons/ri";
 import { motion } from "framer-motion";
 import { ContactModal } from "./ContactModal";
+import { useRouter } from "next/navigation";
 
 export function ProfileButton() {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    router.push('/');
+  };
 
   return (
     <>
@@ -42,14 +50,23 @@ export function ProfileButton() {
                      border border-coastal-sand/20
                      focus:outline-none divide-y divide-coastal-sand/10"
           >
+            {/* User Profile Section */}
+            <div className="p-3 border-b border-coastal-sand/10">
+              <div className="text-sm text-coastal-dark-grey">
+                Signed in as:
+                <div className="font-medium text-coastal-dark-teal mt-1">
+                  {session?.user?.email}
+                </div>
+              </div>
+            </div>
+
             <div className="p-2">
               <Menu.Item>
                 {({ active }) => (
                   <button
                     onClick={() => setIsContactModalOpen(true)}
-                    className={`${
-                      active ? "bg-coastal-light-grey" : ""
-                    } flex w-full items-center gap-2 px-4 py-3 rounded-xl text-sm
+                    className={`${active ? "bg-coastal-light-grey" : ""
+                      } flex w-full items-center gap-2 px-4 py-3 rounded-xl text-sm
                       text-coastal-dark-grey hover:text-coastal-dark-teal
                       transition-colors duration-150`}
                   >
@@ -61,9 +78,8 @@ export function ProfileButton() {
                 {({ active }) => (
                   <Link
                     href="/terms"
-                    className={`${
-                      active ? "bg-coastal-light-grey" : ""
-                    } flex items-center gap-2 px-4 py-3 rounded-xl text-sm
+                    className={`${active ? "bg-coastal-light-grey" : ""
+                      } flex items-center gap-2 px-4 py-3 rounded-xl text-sm
                       text-coastal-dark-grey hover:text-coastal-dark-teal
                       transition-colors duration-150`}
                   >
@@ -78,12 +94,9 @@ export function ProfileButton() {
               <Menu.Item>
                 {({ active }) => (
                   <button
-                    onClick={() => {
-                      signOut({ redirect: false });
-                    }}
-                    className={`${
-                      active ? "bg-red-50" : ""
-                    } flex w-full items-center gap-2 px-4 py-3 rounded-xl text-sm
+                    onClick={handleLogout}
+                    className={`${active ? "bg-red-50" : ""
+                      } flex w-full items-center gap-2 px-4 py-3 rounded-xl text-sm
                       text-red-600 hover:text-red-700 transition-colors duration-150`}
                   >
                     Log out

@@ -25,16 +25,16 @@ export async function GET(request: Request) {
             },
           },
           orderBy: {
-            createdAt: 'desc',
+            createdAt: "desc",
           },
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
-    const formattedUsers = users.map(user => ({
+    const formattedUsers = users.map((user) => ({
       id: user.id,
       name: user.name,
       email: user.email,
@@ -55,4 +55,4 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

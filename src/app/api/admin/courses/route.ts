@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db/prisma'
-import { getAuthSession } from '@/lib/auth'
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db/prisma";
+import { getAuthSession } from "@/lib/auth";
 
 export async function GET(request: Request) {
-  const session = await getAuthSession()
-  
+  const session = await getAuthSession();
+
   if (!session?.user?.email || session.user.email !== process.env.ADMIN_EMAIL) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -23,26 +23,26 @@ export async function GET(request: Request) {
         createdAt: true,
       },
       orderBy: {
-        createdAt: 'desc'
-      }
-    })
+        createdAt: "desc",
+      },
+    });
 
-    return NextResponse.json({ courses })
+    return NextResponse.json({ courses });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
-  const session = await getAuthSession()
-  
+  const session = await getAuthSession();
+
   if (!session?.user?.email || session.user.email !== process.env.ADMIN_EMAIL) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const data = await request.json()
-    
+    const data = await request.json();
+
     const course = await prisma.course.create({
       data: {
         id: data.id,
@@ -52,16 +52,19 @@ export async function POST(request: Request) {
         price: data.price,
         stripeProductId: data.stripeProductId,
         highlights: data.highlights || [],
-        whatYouWillLearn: data.whatYouWillLearn || []
-      }
-    })
+        whatYouWillLearn: data.whatYouWillLearn || [],
+      },
+    });
 
-    return NextResponse.json({ success: true, course })
+    return NextResponse.json({ success: true, course });
   } catch (error: any) {
-    console.error('Create error:', error)
-    return NextResponse.json({ 
-      error: error.message || 'Failed to create course',
-      details: error
-    }, { status: 500 })
+    console.error("Create error:", error);
+    return NextResponse.json(
+      {
+        error: error.message || "Failed to create course",
+        details: error,
+      },
+      { status: 500 }
+    );
   }
-} 
+}

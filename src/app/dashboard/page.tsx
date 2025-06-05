@@ -118,10 +118,12 @@ export default async function DashboardPage() {
     },
   })) as CourseWithPurchases[];
 
+  const isAdmin = session.user.isAdmin;
+
   const coursesWithPurchaseStatus: CourseWithUnlockStatus[] = courses.map(
     (course) => ({
       ...course,
-      isUnlocked: course.purchases.length > 0,
+      isUnlocked: isAdmin || course.purchases.length > 0,
     })
   );
 

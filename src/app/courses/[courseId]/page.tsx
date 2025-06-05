@@ -13,10 +13,10 @@ async function hasAccess(userId: string, courseId: string) {
   return !!purchase
 }
 
-export default async function CoursePage({ 
+export default async function CoursePage({
   params,
-  searchParams 
-}: { 
+  searchParams
+}: {
   params: { courseId: string }
   searchParams: { payment_intent?: string }
 }) {
@@ -36,7 +36,8 @@ export default async function CoursePage({
   }
 
   // Check if user has access
-  const hasUserAccess = await hasAccess(session.user.id, params.courseId)
+  const isAdmin = session.user.isAdmin;
+  const hasUserAccess = isAdmin || await hasAccess(session.user.id, params.courseId);
 
   return (
     <ClientWrapper

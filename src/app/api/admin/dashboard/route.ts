@@ -39,19 +39,19 @@ export async function GET(request: Request) {
     const yearStart = new Date(now.getFullYear(), 0, 1);
 
     const yearlyRevenue = purchases
-      .filter(p => new Date(p.createdAt) >= yearStart)
+      .filter((p) => new Date(p.createdAt) >= yearStart)
       .reduce((sum, purchase) => sum + purchase.course.price, 0);
 
     const monthlyRevenue = purchases
-      .filter(p => new Date(p.createdAt) >= monthStart)
+      .filter((p) => new Date(p.createdAt) >= monthStart)
       .reduce((sum, purchase) => sum + purchase.course.price, 0);
 
     const weeklyRevenue = purchases
-      .filter(p => new Date(p.createdAt) >= weekStart)
+      .filter((p) => new Date(p.createdAt) >= weekStart)
       .reduce((sum, purchase) => sum + purchase.course.price, 0);
 
     const dailyRevenue = purchases
-      .filter(p => new Date(p.createdAt) >= dayStart)
+      .filter((p) => new Date(p.createdAt) >= dayStart)
       .reduce((sum, purchase) => sum + purchase.course.price, 0);
 
     // Course statistics
@@ -119,9 +119,10 @@ export async function GET(request: Request) {
         id: course.id,
         title: course.title,
         purchaseRate: totalUsers > 0 ? course.purchases.length / totalUsers : 0,
-        completionRate: course.purchases.length > 0 
-          ? course.courseAccess.length / course.purchases.length 
-          : 0,
+        completionRate:
+          course.purchases.length > 0
+            ? course.courseAccess.length / course.purchases.length
+            : 0,
       })),
       recentPurchases: recentPurchases.map((purchase) => ({
         id: purchase.id,
@@ -140,4 +141,4 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

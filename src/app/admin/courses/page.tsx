@@ -6,7 +6,7 @@ import { prisma } from '@/lib/db/prisma'
 
 export default async function AdminCoursesPage() {
   const session = await getAuthSession()
-  
+
   if (!session?.user?.email || session.user.email !== process.env.ADMIN_EMAIL) {
     return (
       <div className="min-h-screen bg-coastal-shell py-12">
@@ -37,7 +37,7 @@ export default async function AdminCoursesPage() {
 
   return (
     <div className="min-h-screen bg-coastal-shell">
-        
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-coastal-sand">
@@ -54,7 +54,7 @@ export default async function AdminCoursesPage() {
             </div>
           </div>
         </div>
-        
+
         <div className="grid gap-8">
           {/* Add New Course Section */}
           <div className="bg-white rounded-2xl shadow-lg border border-coastal-sand overflow-hidden">

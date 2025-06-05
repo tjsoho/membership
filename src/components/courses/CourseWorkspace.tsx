@@ -23,6 +23,14 @@ import { showToast } from "@/utils/toast";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { Descendant } from "slate";
 import toast from "react-hot-toast";
+import dynamic from "next/dynamic";
+import { useSession } from "next-auth/react";
+
+// Dynamically import Excalidraw with no SSR
+const Excalidraw = dynamic(
+  () => import("@excalidraw/excalidraw").then((mod) => mod.Excalidraw),
+  { ssr: false }
+);
 
 type TabType = "mindmap" | "notes" | null;
 type WorkspaceType = "MINDMAP" | "NOTES";
@@ -174,11 +182,11 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
           noteContent.length > 0
             ? noteContent
             : [
-                {
-                  type: "paragraph",
-                  children: [{ text: "" }],
-                },
-              ];
+              {
+                type: "paragraph",
+                children: [{ text: "" }],
+              },
+            ];
       }
 
       const payload = {
@@ -199,9 +207,9 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
         body: JSON.stringify(
           editingItem
             ? {
-                id: editingItem.id,
-                ...payload,
-              }
+              id: editingItem.id,
+              ...payload,
+            }
             : payload
         ),
       });
@@ -597,10 +605,9 @@ export function CourseWorkspace({ userEmail, courseId }: CourseWorkspaceProps) {
                   key={item.id}
                   onClick={() => handleEdit(item)}
                   className={`w-full p-3 rounded-lg border text-left
-                    ${
-                      editingItem?.id === item.id
-                        ? "border-coastal-dark-teal border-2 bg-coastal-light-grey/20"
-                        : "border-coastal-sand hover:border-coastal-dark-teal"
+                    ${editingItem?.id === item.id
+                      ? "border-coastal-dark-teal border-2 bg-coastal-light-grey/20"
+                      : "border-coastal-sand hover:border-coastal-dark-teal"
                     }
                     transition-colors group`}
                 >

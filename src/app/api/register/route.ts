@@ -4,13 +4,13 @@ import bcrypt from "bcrypt"
 
 export async function POST(req: Request) {
   console.log('📝 Registration request received')
-  
+
   try {
     const { email, password, name } = await req.json()
     console.log('📧 Email received:', email)
     console.log('👤 Name received:', name)
     // Don't log the password for security
-    
+
     // Validate input
     if (!email || !password || !name) {
       console.log('❌ Missing required fields')
@@ -32,14 +32,14 @@ export async function POST(req: Request) {
     })
 
     if (existingUser) {
-      if(existingUser.name === "Pending Registration"){
+      if (existingUser.name === "Pending Registration") {
         const user_update = await prisma.user.update({
-          where:{
-            email:email,
+          where: {
+            email: email,
           },
-          data:{
-            name:name,
-            password:hashedPassword,
+          data: {
+            name: name,
+            password: hashedPassword,
           }
         })
         return NextResponse.json({
@@ -50,14 +50,14 @@ export async function POST(req: Request) {
           }
         })
       }
-      else{
+      else {
         console.log('⚠️ Email already registered:', email)
         return NextResponse.json(
           { error: "Email already registered" },
           { status: 400 }
         )
       }
-      
+
     }
 
     // Create user
