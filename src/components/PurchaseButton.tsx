@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
-import { PaymentModal } from "./PaymentModal";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+
 
 /******************************************************************************
                                 TYPES
@@ -28,7 +27,7 @@ export function PurchaseButton({
   if (isUnlocked) {
     return (
       <div className="flex items-center justify-between">
-        <span className="text-lg font-semibold text-coastal-light-teal">
+        {/* <span className="text-lg font-semibold text-coastal-light-teal">
           ${price} AUD
         </span>
         <button
@@ -36,7 +35,7 @@ export function PurchaseButton({
           disabled
         >
           Enrolled
-        </button>
+        </button> */}
       </div>
     );
   }

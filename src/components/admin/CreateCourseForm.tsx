@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -198,8 +199,7 @@ export function CreateCourseForm({ course, onCancel }: CreateCourseFormProps) {
           3. Add your course content
         `;
         alert(
-          `Course ${isEditing ? "updated" : "created"} successfully!\n\n${
-            !isEditing ? guidance : ""
+          `Course ${isEditing ? "updated" : "created"} successfully!\n\n${!isEditing ? guidance : ""
           }`
         );
       }
@@ -484,8 +484,8 @@ export function CreateCourseForm({ course, onCancel }: CreateCourseFormProps) {
               ? "Updating..."
               : "Creating..."
             : isEditing
-            ? "Update Course"
-            : "Create Course"}
+              ? "Update Course"
+              : "Create Course"}
         </button>
 
         {isEditing && (

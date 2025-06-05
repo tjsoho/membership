@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAuthSession } from "@/lib/auth";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
+import React from "react";
 
 interface DashboardStats {
   totalUsers: number;

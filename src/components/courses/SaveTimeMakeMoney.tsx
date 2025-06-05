@@ -1,5 +1,5 @@
 "use client";
-
+import React from "react";
 import { useState, useEffect, useRef } from "react";
 import { IoCheckmarkCircle } from "react-icons/io5";
 import { BsPauseFill, BsPlayFill } from "react-icons/bs";
@@ -7,10 +7,9 @@ import { MdOutlineSubtitles } from "react-icons/md";
 import { CourseWorkspace } from "./CourseWorkspace";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
-import { Navbar } from "@/components/Navbar";
-import { showToast } from "@/utils/toast";
 import { toast } from "react-hot-toast";
 import { HiArrowDown } from "react-icons/hi";
+import { Navbar } from "../Navbar";
 
 interface CourseStep {
   id: number;

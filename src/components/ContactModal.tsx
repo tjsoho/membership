@@ -6,7 +6,8 @@ import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { LoadingWave } from "./ui/LoadingWave";
-import { showToast } from "@/utils/toast";
+import { showToast } from "../utils/toast";
+import React from "react";
 
 const ContactSchema = Yup.object().shape({
   name: Yup.string().required("Name is required"),

@@ -11,8 +11,8 @@ import {
 } from "@stripe/react-stripe-js";
 import { InlineWidget } from "react-calendly";
 import { IoCheckmarkCircle } from "react-icons/io5";
-import { LoadingSpinner } from "./ui/LoadingSpinner";
-import { LoadingWave } from "@/components/ui/LoadingWave";
+import React from "react";
+import { LoadingWave } from "./ui/LoadingWave";
 
 // Initialize Stripe outside component
 const stripePromise = loadStripe(

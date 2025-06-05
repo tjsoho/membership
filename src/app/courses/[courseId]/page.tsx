@@ -1,6 +1,7 @@
+import React from 'react'
 import { redirect } from 'next/navigation'
-import { getAuthSession } from '@/lib/auth'
-import { prisma } from '@/lib/db/prisma'
+import { getAuthSession } from '../../../lib/auth'
+import { prisma } from '../../../lib/db/prisma'
 import { ClientWrapper } from './ClientWrapper'
 
 async function hasAccess(userId: string, courseId: string) {

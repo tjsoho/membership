@@ -1,8 +1,9 @@
-import { getAuthSession } from '@/lib/auth'
+import { getAuthSession } from '../../../lib/auth'
 import { redirect } from 'next/navigation'
-import { CreateCourseForm } from '@/components/admin/CreateCourseForm'
-import { CoursesList } from '@/components/admin/CoursesList'
-import { prisma } from '@/lib/db/prisma'
+import { CreateCourseForm } from '../../../components/admin/CreateCourseForm'
+import { CoursesList } from '../../../components/admin/CoursesList'
+import { prisma } from '../../../lib/db/prisma'
+import React from 'react'
 
 export default async function AdminCoursesPage() {
   const session = await getAuthSession()

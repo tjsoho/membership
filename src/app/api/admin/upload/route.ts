@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAuthSession } from '@/lib/auth';
+import { getAuthSession } from '../../../../lib/auth';
 import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: Request) {

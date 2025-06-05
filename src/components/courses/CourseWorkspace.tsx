@@ -19,8 +19,8 @@ import {
   ExcalidrawElement,
 } from "./ExcalidrawWorkspace";
 
-import { showToast } from "@/utils/toast";
-import { RichTextEditor } from "@/components/RichTextEditor";
+import { showToast } from "../../utils/toast";
+import { RichTextEditor } from "../RichTextEditor";
 import { Descendant } from "slate";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";

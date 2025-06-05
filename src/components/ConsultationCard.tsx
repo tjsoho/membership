@@ -2,8 +2,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ConsultationModal } from "./ConsultationModal";
-import { LoadingWave } from "@/components/ui/LoadingWave";
-import { Modal } from "@/components/ui/Modal";
+import { LoadingWave } from "./ui/LoadingWave";
+import { Modal } from "./ui/Modal";
+import React from "react";
 
 interface ConsultationCardProps {
   id: string;

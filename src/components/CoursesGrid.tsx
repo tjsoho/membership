@@ -2,11 +2,13 @@
                                 IMPORTS
 ******************************************************************************/
 "use client";
+import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PurchaseModal } from "./PurchaseModal";
-import { LoadingWave } from "@/components/ui/LoadingWave";
+import { LoadingWave } from "./ui/LoadingWave";
+import { CourseCard } from "./CourseCard";
 
 /******************************************************************************
                                 TYPES
@@ -64,42 +66,16 @@ export function CoursesGrid({ courses }: CoursesGridProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {courses.map((course) => (
-          <div
+          <CourseCard
             key={course.id}
-            onClick={() => !isLoading && handleCourseClick(course)}
-            className={`bg-white rounded-xl shadow-lg overflow-hidden 
-                     ${
-                       !isLoading
-                         ? "cursor-pointer hover:shadow-xl"
-                         : "cursor-wait"
-                     } 
-                     transition-shadow duration-300`}
-          >
-            <div className="relative aspect-video">
-              <Image
-                src={course.image}
-                alt={course.title}
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="p-6">
-              <h3 className="text-xl font-bold text-coastal-dark-teal mb-2">
-                {course.title}
-              </h3>
-              <p className="text-coastal-dark-grey line-clamp-2 mb-4">
-                {course.description}
-              </p>
-              <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-coastal-dark-teal">
-                  ${course.price}
-                </span>
-                <span className="text-sm text-coastal-dark-grey">
-                  {course.isUnlocked ? "Enrolled ✅" : "Click to learn more 👆🏼"}
-                </span>
-              </div>
-            </div>
-          </div>
+            id={course.id}
+            title={course.title}
+            description={course.description}
+            image={course.image}
+            price={course.price}
+            isUnlocked={course.isUnlocked}
+            onClick={() => handleCourseClick(course)}
+          />
         ))}
       </div>
 

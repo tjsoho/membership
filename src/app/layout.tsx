@@ -1,8 +1,9 @@
-import { AuthProvider } from "@/components/providers/AuthProvider";
+import React from "react";
+import { AuthProvider } from "../components/providers/AuthProvider";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import Script from "next/script";
-import { LoadingProvider } from "@/components/providers/LoadingProvider";
+import { LoadingProvider } from "../components/providers/LoadingProvider";
 
 export default function RootLayout({
   children,

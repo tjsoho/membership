@@ -2,10 +2,11 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { PurchaseModal } from "@/components/PurchaseModal";
-import { MarketingCourseContent } from "@/components/courses/MarketingCourseContent";
-import { PerfectHomePage } from "@/components/courses/SaveTimeMakeMoney";
-import { AmazingTest } from "@/components/courses/AmazingTest";
+import { PurchaseModal } from "../../../components/PurchaseModal";
+import { MarketingCourseContent } from "../../../components/courses/MarketingCourseContent";
+import { PerfectHomePage } from "../../../components/courses/SaveTimeMakeMoney";
+import { AmazingTest } from "../../../components/courses/AmazingTest";
+import React from "react";
 
 interface ClientWrapperProps {
   course: any;

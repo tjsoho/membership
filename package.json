@@ -59,5 +59,10 @@
     "tailwindcss": "^3.4.15",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.2"
-  }
+  },
+  "description": "This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).",
+  "main": "next.config.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

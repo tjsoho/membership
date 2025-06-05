@@ -1,7 +1,8 @@
 "use client";
 
+import React from "react";
 import { useEffect, useState } from "react";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { LoadingSpinner } from "../../../components/ui/LoadingSpinner";
 
 interface UserData {
   id: string;

@@ -1,12 +1,13 @@
 /******************************************************************************
                                 IMPORTS
 ******************************************************************************/
-import { prisma } from "@/lib/db/prisma";
-import { getAuthSession } from "@/lib/auth";
+import React from "react";
+import { prisma } from "../../lib/db/prisma";
+import { getAuthSession } from "../../lib/auth";
 import { redirect } from "next/navigation";
-import { CoursesGrid } from "@/components/CoursesGrid";
-import { Navbar } from "@/components/Navbar";
-import { ConsultationCard } from "@/components/ConsultationCard";
+import { CoursesGrid } from "../../components/CoursesGrid";
+import { Navbar } from "../../components/Navbar";
+import { ConsultationCard } from "../../components/ConsultationCard";
 
 /******************************************************************************
                               INTERFACES

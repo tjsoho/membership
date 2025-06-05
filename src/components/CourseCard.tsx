@@ -2,10 +2,12 @@
                                 IMPORTS
 ******************************************************************************/
 "use client";
+import React from "react";
 import { useState } from "react";
 import { PurchaseButton } from "./PurchaseButton";
 import Image from "next/image";
 import { LoadingSpinner } from "./ui/LoadingSpinner";
+import { useRouter } from "next/navigation";
 
 /******************************************************************************
                                 TYPES
@@ -18,6 +20,7 @@ interface CourseCardProps {
   price: number;
   isUnlocked: boolean;
   onClick: () => void;
+  showEditContent?: boolean;
 }
 
 /******************************************************************************
@@ -31,8 +34,10 @@ export function CourseCard({
   price,
   isUnlocked,
   onClick,
+  showEditContent = false,
 }: CourseCardProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleClick = async () => {
     setIsLoading(true);
@@ -65,13 +70,31 @@ export function CourseCard({
             <p className="text-gray-600 mt-2">{description}</p>
           </div>
         </div>
-        <div className="p-4 border-t">
+        <div className="p-4 border-t flex items-center justify-between w-full">
+          <span className="text-lg font-bold text-coastal-dark-teal">
+            ${price} AUD
+          </span>
+          {isUnlocked && (
+            <span className="flex items-center  text-green-600 text-sm ml-2">
+             
+              ✅ Enrolled
+            </span>
+          )}
           <PurchaseButton
             courseId={id}
             courseTitle={title}
             price={price}
             isUnlocked={isUnlocked}
           />
+          {showEditContent && (
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded ml-2"
+              onClick={() => router.push(`/admin/courses/${id}/content`)}
+              type="button"
+            >
+              Edit Content
+            </button>
+          )}
         </div>
       </div>
       {isLoading && <LoadingSpinner message="Loading course..." />}

@@ -1,7 +1,7 @@
-import { prisma } from "@/lib/db/prisma"
+import { prisma } from "../../../../lib/db/prisma"
 import { randomBytes } from "crypto"
 import { NextResponse } from "next/server"
-import { sendPasswordResetEmail } from "@/lib/email"
+import { sendPasswordResetEmail } from "../../../../lib/email"
 
 export async function POST(req: Request) {
   console.log('📧 Forgot password request received')
