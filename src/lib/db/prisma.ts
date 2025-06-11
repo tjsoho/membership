@@ -9,7 +9,7 @@ export const prisma = globalForPrisma.prisma ??
     log: ['query', 'error', 'warn'],
     datasources: {
       db: {
-        url: process.env.DATABASE_URL
+        url: process.env.DATABASE_URL + "?pgbouncer=true"
       }
     }
   })
