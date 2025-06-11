@@ -40,7 +40,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
       if (!response?.error) {
         console.log("✅ Login successful, redirecting...");
         showToast.success("Welcome Back!", "Successfully logged in");
-        await Promise.all([router.push("/dashboard"), router.refresh()]);
+        await Promise.all([router.replace("/dashboard"), router.refresh()]);
       } else {
         console.log("❌ Login failed:", response.error);
         showToast.error("Login Failed", "Invalid email or password");
