@@ -32,7 +32,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
         email,
         password,
         redirect: false,
-        // callbackUrl: "/dashboard",
+        callbackUrl: "/dashboard",
       });
 
       console.log("📡 Login response:", response);
